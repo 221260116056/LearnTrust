@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LearnTrust | Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            width: 700px;
+            height: 350px;
+            display: flex;
+            background: #fff;
+        }
+
+        .left {
+            width: 50%;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .right {
+            width: 50%;
+            padding: 40px;
+        }
+
+        .right input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            background: #eee;
+        }
+
+        .right button {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .right button:hover {
+            background: #222;
+        }
+
+        .signup {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .signup a {
+            color: #000;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <!-- LEFT -->
+    <div class="left">
+        <div class="logo">LEARNTRUST</div>
+        <p>Secure Learning Platform</p>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- EMAIL instead of username -->
+            <input type="email" name="username" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="signup">
+            Don’t have an account?
+            <a href="{% url 'signup' %}">Sign Up</a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

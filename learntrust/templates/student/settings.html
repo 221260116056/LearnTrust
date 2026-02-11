@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Settings</h2>
+
+<!-- PROFILE SECTION -->
+<div style="
+    background:#111;
+    color:white;
+    padding:20px;
+    border-radius:8px;
+    margin-bottom:20px;
+">
+
+    <h3>My Profile</h3>
+
+    {% if profile.profile_image %}
+        <img src="{{ profile.profile_image.url }}"
+             width="120"
+             style="border-radius:50%; margin-bottom:10px;">
+    {% else %}
+        <p>No profile image</p>
+    {% endif %}
+
+    <p><strong>Username:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+
+</div>
+
+<!-- PROFILE IMAGE UPDATE FORM -->
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Update Profile Photo</label><br><br>
+
+    <input type="file" name="profile_image" required><br><br>
+
+    <button class="btn">Upload</button>
+</form>
+
+<hr>
+
+<a href="{% url 'logout' %}" class="btn">Logout</a>
+
+{% endblock %}

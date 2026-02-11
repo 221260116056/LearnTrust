@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Certificates</h1>
+<p class="subtext">Your earned course certificates</p>
+
+{% if completed_courses %}
+    <div class="course-list">
+        {% for course in completed_courses %}
+            <div class="course-card">
+                <h3>{{ course.title }}</h3>
+                <p>Certificate Available</p>
+
+                <a href="#" class="btn">
+                    Download Certificate
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>You have not completed any courses yet.</p>
+{% endif %}
+
+{% endblock %}

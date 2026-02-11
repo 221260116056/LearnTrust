@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<h2>{{ module.title }}</h2>
+
+<video id="videoPlayer" width="700" controls>
+    <source src="{{ video_url }}" type="video/mp4">
+    Your browser does not support video.
+</video>
+
+<p>
+    Watched: <span id="watchPercent">0</span> %
+</p>
+
+<script src="{% static 'js/player.js' %}"></script>
+
+{% endblock %}

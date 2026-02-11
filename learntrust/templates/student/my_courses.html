@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>My Courses</h2>
+
+{% if enrollments %}
+    <div class="course-list">
+        {% for e in enrollments %}
+            <div class="course-card">
+                <h3>{{ e.course.title }}</h3>
+                <p>{{ e.course.description }}</p>
+
+                {% if e.is_paid %}
+                    <a href="/course/{{ e.course.id }}/" class="btn">
+                        Continue Course
+                    </a>
+                {% else %}
+                    <span class="locked">🔒 Payment Required</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>You are not enrolled in any course.</p>
+{% endif %}
+
+{% endblock %}
