@@ -141,6 +141,47 @@ async function submitAnswer(answer) {
     }
 }
 
+// Detect tab visibility change
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Tab is hidden - log event and pause video
+        console.log('Tab hidden - pausing video');
+        video.pause();
+        
+        // Send visibility event to backend
+        fetch('/api/watch-event/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                module_id: parseInt(moduleId),
+                event_type: 'tab_hidden',
+                sequence_number: ++sequenceNumber,
+                current_time: video.currentTime
+            })
+        }).catch(err => console.error('Visibility event error:', err));
+    } else {
+        // Tab is visible again - log event
+        console.log('Tab visible');
+        
+        fetch('/api/watch-event/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                module_id: parseInt(moduleId),
+                event_type: 'tab_visible',
+                sequence_number: ++sequenceNumber,
+                current_time: video.currentTime
+            })
+        }).catch(err => console.error('Visibility event error:', err));
+    }
+});
+
 // Fetch micro-quiz on load
 fetchMicroQuiz();
 

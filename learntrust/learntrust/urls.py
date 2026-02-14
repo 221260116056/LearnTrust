@@ -45,6 +45,9 @@ urlpatterns = [
     
     # 🧩 Quizzes
     path('', include('quizzes.urls')),
+    
+    # 📊 Events/Logs
+    path('', include('events.urls')),
 ]
 
 # 🎥 MEDIA FILES (VERY IMPORTANT)

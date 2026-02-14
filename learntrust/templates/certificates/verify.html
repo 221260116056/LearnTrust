@@ -28,6 +28,13 @@
         .invalid {
             color: #dc2626;
         }
+        .revoked {
+            color: #dc2626;
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+        }
         .icon {
             font-size: 64px;
             margin-bottom: 20px;
@@ -74,6 +81,20 @@
                 <div class="detail-row">
                     <span class="label">Certificate ID:</span>
                     <span>{{ certificate.certificate_id }}</span>
+                </div>
+            </div>
+        {% elif is_revoked %}
+            <div class="icon revoked">✕</div>
+            <h1 class="revoked">Certificate Revoked</h1>
+            <p>This certificate has been revoked by the issuing institution. Please contact the administrator for more information.</p>
+            <div class="details">
+                <div class="detail-row">
+                    <span class="label">Certificate ID:</span>
+                    <span>{{ certificate.certificate_id }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Issued:</span>
+                    <span>{{ certificate.issued_at|date:"F d, Y" }}</span>
                 </div>
             </div>
         {% else %}

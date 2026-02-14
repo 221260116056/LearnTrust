@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="teacher-analytics">
+    <h1>Course Analytics: {{ course.title }}</h1>
+    
+    <div class="stats-overview">
+        <div class="stat-card">
+            <h4>Total Students</h4>
+            <p>{{ student_data|length }}</p>
+        </div>
+        <div class="stat-card">
+            <h4>Total Modules</h4>
+            <p>{{ modules|length }}</p>
+        </div>
+    </div>
+    
+    <div class="students-table">
+        <h3>Student Progress</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Enrolled</th>
+                    <th>Overall Completion</th>
+                    {% for module in modules %}
+                        <th>{{ module.title|truncatechars:15 }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in student_data %}
+                <tr>
+                    <td>{{ student.student.username }}</td>
+                    <td>{{ student.enrollment_date|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ student.overall_completion }}%"></div>
+                            <span>{{ student.overall_completion|floatformat:0 }}%</span>
+                        </div>
+                    </td>
+                    {% for module_progress in student.progress %}
+                    <td>
+                        <div class="module-stats">
+                            <span class="watch-percent {% if module_progress.watch_percent >= 80 %}good{% elif module_progress.watch_percent >= 50 %}medium{% else %}poor{% endif %}">
+                                {{ module_progress.watch_percent|floatformat:0 }}%
+                            </span>
+                            {% if module_progress.micro_quiz_failures > 0 %}
+                                <span class="failures" title="Quiz Failures">⚠️ {{ module_progress.micro_quiz_failures }}</span>
+                            {% endif %}
+                            {% if module_progress.is_completed %}
+                                <span class="completed" title="Completed">✓</span>
+                            {% endif %}
+                            <a href="{% url 'api_module_heatmap' module_progress.module.id %}" class="heatmap-link" target="_blank">📊</a>
+                        </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{{ modules|length|add:3 }}" class="no-data">No students enrolled yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="legend">
+        <h4>Legend</h4>
+        <span class="good">Green: ≥80% watched</span>
+        <span class="medium">Yellow: 50-79% watched</span>
+        <span class="poor">Red: <50% watched</span>
+        <span>⚠️: Micro-quiz failures</span>
+        <span>✓: Module completed</span>
+        <span>📊: View heatmap</span>
+    </div>
+</div>
+
+<style>
+.teacher-analytics {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.stats-overview {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 150px;
+    text-align: center;
+}
+
+.stat-card h4 {
+    margin: 0 0 10px 0;
+    color: #666;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.students-table {
+    overflow-x: auto;
+    margin-bottom: 30px;
+}
+
+.students-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.students-table th,
+.students-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.students-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.progress-bar {
+    position: relative;
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: #28a745;
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.progress-bar span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+}
+
+.module-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+}
+
+.watch-percent {
+    font-weight: bold;
+}
+
+.watch-percent.good { color: #28a745; }
+.watch-percent.medium { color: #ffc107; }
+.watch-percent.poor { color: #dc3545; }
+
+.failures {
+    color: #dc3545;
+}
+
+.completed {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.heatmap-link {
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.legend {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.legend h4 {
+    margin: 0 0 10px 0;
+}
+
+.legend span {
+    margin-right: 20px;
+    font-size: 14px;
+}
+
+.no-data {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+}
+</style>
+{% endblock %}

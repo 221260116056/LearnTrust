@@ -38,6 +38,13 @@ urlpatterns = [
     path("api/watch-event/", watch_event_api, name="api_watch_event"),
     path("api/module-heatmap/<int:module_id>/", module_heatmap_api, name="api_module_heatmap"),
 
+    # 👨‍🏫 TEACHER
+    path("teacher/courses/", views.teacher_course_editor, name="teacher_courses"),
+    path("teacher/course/<int:course_id>/", views.teacher_course_editor, name="teacher_course_editor"),
+    path("teacher/course/<int:course_id>/analytics/", views.teacher_analytics, name="teacher_analytics"),
+
+    # 👨‍💼 ADMIN
+    path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
 
     path('test-api/', views.test_api, name='test_api'),
 ]

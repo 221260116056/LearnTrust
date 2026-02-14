@@ -13,6 +13,14 @@ from .models import Certificate
 def verify_certificate(request, verification_code):
     certificate = get_object_or_404(Certificate, verification_code=verification_code)
     
+    # Check if certificate is revoked
+    if certificate.is_revoked:
+        return render(request, 'certificates/verify.html', {
+            'certificate': certificate,
+            'is_valid': False,
+            'is_revoked': True
+        })
+    
     hash_input = f"{certificate.student_id}{certificate.course_id}{certificate.issued_at}{settings.SECRET_KEY}"
     recalculated_hash = hashlib.sha256(hash_input.encode()).hexdigest()
     
@@ -20,7 +28,8 @@ def verify_certificate(request, verification_code):
     
     return render(request, 'certificates/verify.html', {
         'certificate': certificate,
-        'is_valid': is_valid
+        'is_valid': is_valid,
+        'is_revoked': False
     })
 
 

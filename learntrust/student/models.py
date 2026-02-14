@@ -20,12 +20,19 @@ class Notification(models.Model):
 # 1️⃣ Student Profile
 # ---------------------------------
 class StudentProfile(models.Model):
+    ROLE_CHOICES = [
+        ('student', 'Student'),
+        ('teacher', 'Teacher'),
+        ('admin', 'Admin'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_image = models.ImageField(
         upload_to='profiles/',
         default='profiles/default.png',
         blank=True
     )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
 
     def __str__(self):
         return self.user.username
@@ -66,8 +73,21 @@ class Enrollment(models.Model):
 class Module(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    video_url = models.URLField(blank=True)
     order = models.IntegerField()
     min_watch_percent = models.IntegerField(default=80)
+    must_pass_quiz = models.BooleanField(default=False)
+    allowed_attempts = models.IntegerField(default=3)
+    disable_seeking = models.BooleanField(default=True)
+    required_replays = models.IntegerField(default=0)
+    release_date = models.DateTimeField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
+    
+    # Extended security fields
+    disable_fast_forward = models.BooleanField(default=True)
+    mandatory_checkpoints = models.IntegerField(default=0)
+    timeout_seconds = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['order']
@@ -154,3 +174,28 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"{self.certificate_id} - {self.student.username}"
+
+
+# ---------------------------------
+# 8️⃣ System Settings (Singleton)
+# ---------------------------------
+class SystemSettings(models.Model):
+    token_expiry_minutes = models.IntegerField(default=10, help_text='Token expiry time in minutes')
+    heartbeat_interval_seconds = models.IntegerField(default=10, help_text='Heartbeat interval in seconds')
+    max_micro_quiz_failures = models.IntegerField(default=3, help_text='Maximum micro-quiz failures allowed')
+    certificate_signer_name = models.CharField(max_length=200, default='LearnTrust Administrator', help_text='Default certificate signer name')
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'System Settings'
+        verbose_name_plural = 'System Settings'
+
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists
+        if not self.pk and SystemSettings.objects.exists():
+            raise Exception('Only one SystemSettings instance allowed')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"System Settings (Updated: {self.updated_at})"
