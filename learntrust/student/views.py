@@ -177,6 +177,18 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            
+            # Check user role and redirect accordingly
+            try:
+                profile = StudentProfile.objects.get(user=user)
+                if profile.role == 'admin':
+                    return redirect("admin_dashboard")
+                elif profile.role == 'teacher':
+                    return redirect("teacher_courses")
+            except StudentProfile.DoesNotExist:
+                pass
+            
+            # Default redirect for students
             return redirect("dashboard")
 
         messages.error(request, "Invalid email or password")
