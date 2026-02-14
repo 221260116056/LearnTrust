@@ -168,6 +168,7 @@ class Certificate(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     certificate_id = models.CharField(max_length=100, unique=True)
     issued_at = models.DateTimeField(auto_now_add=True)
+    is_revoked = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('student', 'course')
