@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Enrollment, StudentProgress, Module, WatchEvent
+from events.utils import create_log
 
 
 # =====================================================
@@ -41,6 +42,19 @@ def watch_event_api(request):
         sequence_number=sequence_number,
         token_hash=token_hash,
         current_time=0.0
+    )
+
+    # Create immutable audit log
+    create_log(
+        user=request.user,
+        module=module,
+        event_type=f"watch_{event_type}",
+        metadata={
+            "module_id": module_id,
+            "event_type": event_type,
+            "sequence_number": sequence_number,
+            "token_hash": token_hash
+        }
     )
 
     return Response({"status": "success", "message": "Event recorded"})

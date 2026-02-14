@@ -23,6 +23,7 @@ from .models import (
     Notification
 )
 from .services import validate_module_unlock
+from streaming.utils import generate_signed_token
 
 def test_api(request):
     moodle_url = settings.MOODLE_BASE_URL
@@ -333,9 +334,13 @@ def video_player(request, module_id):
         ).exists():
             return render(request, "student/access_denied.html")
 
+    # Generate signed token for secure video streaming
+    token = generate_signed_token(request.user.id, module.id)
+    
     return render(request, "student/video_player.html", {
         "module": module,
-        "video_url": "/media/sample.mp4"
+        "video_url": "/media/sample.mp4",
+        "token": token
     })
 
 

@@ -2,7 +2,7 @@ from django.utils import timezone
 from .models import StudentProgress
 
 
-def validate_module_unlock(user, module):
+def validate_module_unlock(user, module, request=None):
     """
     Validate if a user can unlock a module based on various criteria.
     """
@@ -48,5 +48,12 @@ def validate_module_unlock(user, module):
                 return False
         except ImportError:
             pass
+
+    # Check micro-quiz failures
+    if request:
+        session_key = f"micro_quiz_failures_{module.id}"
+        failures = request.session.get(session_key, 0)
+        if failures > 3:
+            return False
 
     return True

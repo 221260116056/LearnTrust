@@ -42,6 +42,9 @@ urlpatterns = [
     
     # 📜 Certificate verification
     path('', include('certificates.urls')),
+    
+    # 🧩 Quizzes
+    path('', include('quizzes.urls')),
 ]
 
 # 🎥 MEDIA FILES (VERY IMPORTANT)

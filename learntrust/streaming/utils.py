@@ -10,29 +10,28 @@ def generate_signed_token(user_id, module_id):
     """
     Generate HMAC-signed token for video streaming access.
     Token expires in 10 minutes.
+    Format: base64payload.signature
     """
-    expires_at = int(time.time()) + 600  # 10 minutes
+    expiry = int(time.time()) + 600  # 10 minutes from now
     
     payload = {
         'user_id': user_id,
         'module_id': module_id,
-        'expires_at': expires_at
+        'expiry': expiry
     }
     
     payload_json = json.dumps(payload, separators=(',', ':'))
     payload_bytes = payload_json.encode('utf-8')
     
+    # Base64 encode payload
+    payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode('utf-8').rstrip('=')
+    
+    # Generate HMAC SHA256 signature
     signature = hmac.new(
         settings.SECRET_KEY.encode('utf-8'),
         payload_bytes,
         hashlib.sha256
     ).hexdigest()
     
-    token_data = {
-        'payload': base64.urlsafe_b64encode(payload_bytes).decode('utf-8').rstrip('='),
-        'signature': signature
-    }
-    
-    return base64.urlsafe_b64encode(
-        json.dumps(token_data).encode('utf-8')
-    ).decode('utf-8').rstrip('=')
+    # Return token as: base64payload.signature
+    return f"{payload_b64}.{signature}"
