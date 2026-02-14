@@ -1,8 +1,49 @@
+import hashlib
+from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Enrollment, StudentProgress, Module
+from .models import Enrollment, StudentProgress, Module, WatchEvent
+
+
+# =====================================================
+# API — WATCH EVENT
+# =====================================================
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def watch_event_api(request):
+    """
+    Secure watch event logging
+    """
+    module_id = request.data.get("module_id")
+    event_type = request.data.get("event_type")
+    sequence_number = request.data.get("sequence_number")
+
+    if not all([module_id, event_type, sequence_number]):
+        return Response({"status": "error", "message": "Missing required fields"}, status=400)
+
+    try:
+        module = Module.objects.get(id=module_id)
+    except Module.DoesNotExist:
+        return Response({"status": "error", "message": "Module not found"}, status=404)
+
+    if WatchEvent.objects.filter(student=request.user, module=module, sequence_number=sequence_number).exists():
+        return Response({"status": "error", "message": "Duplicate sequence_number"}, status=409)
+
+    hash_input = f"{request.user.id}{module_id}{sequence_number}{settings.SECRET_KEY}"
+    token_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+
+    WatchEvent.objects.create(
+        student=request.user,
+        module=module,
+        event_type=event_type,
+        sequence_number=sequence_number,
+        token_hash=token_hash,
+        current_time=0.0
+    )
+
+    return Response({"status": "success", "message": "Event recorded"})
 
 
 # =====================================================

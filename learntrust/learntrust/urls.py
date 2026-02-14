@@ -39,6 +39,9 @@ urlpatterns = [
 
     # 🎓 Student panel
     path('', include('student.urls')),
+    
+    # 📜 Certificate verification
+    path('', include('certificates.urls')),
 ]
 
 # 🎥 MEDIA FILES (VERY IMPORTANT)

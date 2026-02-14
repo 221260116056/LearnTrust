@@ -106,9 +106,19 @@ class StudentProgress(models.Model):
 # 6️⃣ Watch Events (append-only)
 # ---------------------------------
 class WatchEvent(models.Model):
+    EVENT_TYPE_CHOICES = [
+        ('play', 'Play'),
+        ('pause', 'Pause'),
+        ('heartbeat', 'Heartbeat'),
+        ('checkpoint', 'Checkpoint'),
+    ]
+
     student = models.ForeignKey(User, on_delete=models.CASCADE)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
     current_time = models.FloatField()
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='play')
+    sequence_number = models.IntegerField()
+    token_hash = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -116,6 +126,14 @@ class WatchEvent(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.module.title} @ {self.current_time}s"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise Exception("WatchEvent is append-only and cannot be updated.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise Exception("WatchEvent is append-only and cannot be deleted.")
 
 
 # ---------------------------------

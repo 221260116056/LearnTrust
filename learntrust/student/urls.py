@@ -1,10 +1,11 @@
 from django.urls import path
 from . import views
-from .api import (
+from .api_views import (
     my_courses_api,
     dashboard_api,
     progress_api,
     enrollment_api,
+    watch_event_api,
 )
 
 urlpatterns = [
@@ -33,4 +34,8 @@ urlpatterns = [
     path("api/my-courses/", my_courses_api, name="api_my_courses"),
     path("api/dashboard/", dashboard_api, name="api_dashboard"),
     path("api/progress/", progress_api, name="api_progress"),
+    path("api/watch-event/", watch_event_api, name="api_watch_event"),
+
+
+    path('test-api/', views.test_api, name='test_api'),
 ]

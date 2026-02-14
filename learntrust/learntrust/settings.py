@@ -4,6 +4,7 @@ Student Panel Only – LearnTrust
 """
 
 from pathlib import Path
+import os
 
 # -------------------------------------------------
 # BASE DIRECTORY
@@ -98,7 +99,7 @@ WSGI_APPLICATION = 'learntrust.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'learntrust_db',
+        'NAME': 'moodle',
         'USER': 'postgres',
         'PASSWORD': '12345678',
         'HOST': 'localhost',
@@ -176,3 +177,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECURE_SSL_REDIRECT = False   # keep False locally
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
+
+
+# -------------------------------------------------
+# MOODLE INTEGRATION (STUDENT DASHBOARD)
+# -------------------------------------------------
+# Configure these values for your Moodle instance.
+# You can also set them via environment variables.
+MOODLE_BASE_URL = "http://localhost:80/moodle"
+MOODLE_TOKEN = "7d330c0700a5e224213aec6e239e3b84"       # Web service token generated in Moodle
