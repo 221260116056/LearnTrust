@@ -22,6 +22,10 @@ from django.conf.urls.static import static
 from student import views  # ✅ IMPORT STUDENT VIEWS
 
 urlpatterns = [
+    # 👨‍💼 CUSTOM ADMIN DASHBOARD (Must be BEFORE Django admin)
+    path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
+    
+    # 🔧 DJANGO ADMIN
     path('admin/', admin.site.urls),
 
     # 🔐 Login (Django built-in)

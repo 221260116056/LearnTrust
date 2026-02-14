@@ -43,8 +43,5 @@ urlpatterns = [
     path("teacher/course/<int:course_id>/", views.teacher_course_editor, name="teacher_course_editor"),
     path("teacher/course/<int:course_id>/analytics/", views.teacher_analytics, name="teacher_analytics"),
 
-    # 👨‍💼 ADMIN
-    path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
-
     path('test-api/', views.test_api, name='test_api'),
 ]
