@@ -113,16 +113,20 @@ class WatchEvent(models.Model):
         ('checkpoint', 'Checkpoint'),
     ]
 
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, db_index=True)
     current_time = models.FloatField()
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='play')
     sequence_number = models.IntegerField()
     token_hash = models.CharField(max_length=128)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ['created_at']
+        unique_together = [('student', 'module', 'sequence_number')]
+        indexes = [
+            models.Index(fields=['student', 'module', 'created_at']),
+        ]
 
     def __str__(self):
         return f"{self.student.username} - {self.module.title} @ {self.current_time}s"

@@ -57,3 +57,24 @@ def validate_module_unlock(user, module, request=None):
             return False
 
     return True
+
+
+def generate_video_heatmap(module):
+    """
+    Generate a heatmap of video watch events grouped into 10-second buckets.
+    Returns dictionary with bucket number as key and heartbeat count as value.
+    """
+    from collections import defaultdict
+    from .models import WatchEvent
+    
+    heatmap = defaultdict(int)
+    
+    # Fetch all watch events for this module
+    events = WatchEvent.objects.filter(module=module, event_type='heartbeat')
+    
+    # Group events into 10-second buckets
+    for event in events:
+        bucket = (int(event.current_time) // 10) * 10
+        heatmap[bucket] += 1
+    
+    return dict(heatmap)

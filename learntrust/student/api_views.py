@@ -15,11 +15,14 @@ from events.utils import create_log
 @permission_classes([IsAuthenticated])
 def watch_event_api(request):
     """
-    Secure watch event logging
+    Secure watch event logging with sequence validation
     """
+    import time
+    
     module_id = request.data.get("module_id")
     event_type = request.data.get("event_type")
     sequence_number = request.data.get("sequence_number")
+    event_timestamp = request.data.get("timestamp")  # Client timestamp
 
     if not all([module_id, event_type, sequence_number]):
         return Response({"status": "error", "message": "Missing required fields"}, status=400)
@@ -28,6 +31,28 @@ def watch_event_api(request):
         module = Module.objects.get(id=module_id)
     except Module.DoesNotExist:
         return Response({"status": "error", "message": "Module not found"}, status=404)
+
+    # Validate sequence number is strictly increasing
+    last_event = WatchEvent.objects.filter(
+        student=request.user, 
+        module=module
+    ).order_by('-sequence_number').first()
+    
+    if last_event and int(sequence_number) <= last_event.sequence_number:
+        return Response({
+            "status": "error", 
+            "message": f"Sequence number must be greater than {last_event.sequence_number}"
+        }, status=400)
+
+    # Validate event timestamp is not older than 30 seconds
+    if event_timestamp:
+        server_time = time.time()
+        time_diff = server_time - float(event_timestamp)
+        if time_diff > 30:
+            return Response({
+                "status": "error", 
+                "message": "Event timestamp too old (>30s)"
+            }, status=400)
 
     if WatchEvent.objects.filter(student=request.user, module=module, sequence_number=sequence_number).exists():
         return Response({"status": "error", "message": "Duplicate sequence_number"}, status=409)
@@ -173,4 +198,50 @@ def progress_api(request):
         "total_modules": total_modules,
         "completed_modules": completed,
         "progress_percent": percent
+    })
+
+
+# =====================================================
+# API — MODULE HEATMAP
+# =====================================================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def module_heatmap_api(request, module_id):
+    """
+    Return video watch heatmap for a module.
+    Only accessible by course instructors or admins.
+    """
+    from django.shortcuts import get_object_or_404
+    from .services import generate_video_heatmap
+    
+    module = get_object_or_404(Module, id=module_id)
+    
+    # Check if user is instructor or admin
+    is_instructor = hasattr(request.user, 'is_instructor') and request.user.is_instructor
+    is_admin = request.user.is_staff or request.user.is_superuser
+    
+    if not (is_instructor or is_admin):
+        return Response({"status": "error", "message": "Permission denied"}, status=403)
+    
+    heatmap = generate_video_heatmap(module)
+    
+    # Detect sharp drop-off (>40% decrease)
+    drop_off_detected = False
+    sorted_buckets = sorted(heatmap.keys(), key=lambda x: int(x))
+    
+    for i in range(1, len(sorted_buckets)):
+        prev_count = heatmap[sorted_buckets[i-1]]
+        curr_count = heatmap[sorted_buckets[i]]
+        
+        if prev_count > 0:
+            decrease_percent = ((prev_count - curr_count) / prev_count) * 100
+            if decrease_percent > 40:
+                drop_off_detected = True
+                break
+    
+    return Response({
+        "status": "success",
+        "module_id": module_id,
+        "heatmap": heatmap,
+        "drop_off_detected": drop_off_detected
     })

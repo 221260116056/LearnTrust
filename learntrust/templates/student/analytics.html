@@ -27,6 +27,14 @@
     <canvas id="weeklyChart" height="120"></canvas>
 </div>
 
+<div class="chart-section">
+    <h3>Video Engagement Heatmap</h3>
+    <div id="dropOffAlert" style="display: none; background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+        ⚠️ Sharp drop-off detected in engagement!
+    </div>
+    <canvas id="heatmapChart" height="120"></canvas>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const ctx = document.getElementById('weeklyChart');
@@ -41,6 +49,62 @@ new Chart(ctx, {
         }]
     },
 });
+
+// Fetch and render heatmap
+async function loadHeatmap() {
+    const moduleId = 1; // Change this dynamically based on selected module
+    try {
+        const response = await fetch(`/api/module-heatmap/${moduleId}/`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const heatmap = data.heatmap;
+            const labels = Object.keys(heatmap).sort((a, b) => parseInt(a) - parseInt(b));
+            const values = labels.map(k => heatmap[k]);
+            
+            // Show drop-off alert if detected
+            if (data.drop_off_detected) {
+                document.getElementById('dropOffAlert').style.display = 'block';
+            }
+            
+            const heatmapCtx = document.getElementById('heatmapChart');
+            new Chart(heatmapCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(l => `${l}s`),
+                    datasets: [{
+                        label: 'Engagement Count',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (seconds)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Engagement Count'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    } catch (err) {
+        console.error('Failed to load heatmap:', err);
+    }
+}
+
+loadHeatmap();
 </script>
 
 {% endblock %}

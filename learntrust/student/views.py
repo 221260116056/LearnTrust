@@ -350,6 +350,20 @@ def video_player(request, module_id):
 @login_required
 def complete_module(request, module_id):
     module = get_object_or_404(Module, id=module_id)
+    
+    # Validate module unlock requirements server-side
+    if not validate_module_unlock(request.user, module, request):
+        return render(request, "student/access_denied.html")
+    
+    # Check enrollment
+    enrollment = Enrollment.objects.filter(
+        student=request.user,
+        course=module.course,
+        is_paid=True
+    ).first()
+    
+    if not enrollment:
+        return render(request, "student/access_denied.html")
 
     progress, _ = StudentProgress.objects.get_or_create(
         student=request.user,
