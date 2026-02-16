@@ -639,6 +639,34 @@
                 </div>
             </div>
 
+            <!-- Moodle Courses -->
+            {% if moodle_courses %}
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">My Moodle Courses</div>
+                </div>
+                {% for course in moodle_courses %}
+                <div style="padding: 12px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <a href="{{ course.url }}" target="_blank" style="text-decoration: none; color: #1a1a2e; font-weight: 500;">
+                            {{ course.fullname|default:course.shortname }}
+                        </a>
+                    </div>
+                    <a href="{{ course.url }}" target="_blank" class="btn btn-sm btn-secondary" style="text-decoration: none;">Open</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% elif moodle_error %}
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Moodle Courses</div>
+                </div>
+                <div style="padding: 16px; color: #6b7280; text-align: center;">
+                    {{ moodle_error }}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Quick Stats -->
             <div class="panel">
                 <div class="panel-header">

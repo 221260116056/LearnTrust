@@ -1019,9 +1019,37 @@ def teacher_dashboard(request):
             'student_stats': student_stats
         })
     
+    # Fetch Moodle courses for teacher
+    moodle_courses = []
+    moodle_error = None
+    
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+        if profile.moodle_user_id:
+            moodle_courses_raw = get_user_courses(profile.moodle_user_id)
+            moodle_courses = [
+                {
+                    "id": course.get("id"),
+                    "fullname": course.get("fullname") or "",
+                    "shortname": course.get("shortname") or "",
+                    "url": f"{settings.MOODLE_BASE_URL}/course/view.php?id={course.get('id')}",
+                }
+                for course in moodle_courses_raw
+            ]
+        else:
+            moodle_error = "Moodle account not synced yet"
+    except StudentProfile.DoesNotExist:
+        moodle_error = "Profile not found"
+    except Exception as e:
+        moodle_error = "Unable to fetch Moodle courses"
+        if settings.DEBUG:
+            print(f"[Moodle] Error fetching teacher courses: {e}")
+    
     return render(request, 'student/teacher_dashboard.html', {
         'courses': courses,
         'course_analytics': course_analytics,
+        'moodle_courses': moodle_courses,
+        'moodle_error': moodle_error,
     })
 
 
