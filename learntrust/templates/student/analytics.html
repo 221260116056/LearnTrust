@@ -125,12 +125,27 @@ const ctx = document.getElementById('weeklyChart');
 new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        labels: [{% for day in weekly_data %}'{{ day.day }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
         datasets: [{
             label: 'Hours',
-            data: [2, 3, 8, 4, 5, 6, 2],
+            data: [{% for day in weekly_data %}{{ day.hours }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: 'rgba(102, 126, 234, 0.5)',
+            borderColor: 'rgba(102, 126, 234, 1)',
+            borderWidth: 1
         }]
     },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Hours'
+                }
+            }
+        }
+    }
 });
 
 // Fetch and render heatmap

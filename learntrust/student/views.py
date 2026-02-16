@@ -619,14 +619,69 @@ def complete_module(request, module_id):
 # ANALYTICS
 # ---------------------------------
 @login_required
+@login_required
 def analytics(request):
-    return render(request, "student/analytics.html", {
-        "hours_spent": 42,
-        "completed_courses": Enrollment.objects.filter(
+    """
+    Student analytics page with real data from database
+    """
+    # Calculate real hours spent from watch events (each heartbeat = 10 seconds)
+    from datetime import timedelta
+    week_ago = timezone.now() - timedelta(days=7)
+    watch_events = WatchEvent.objects.filter(
+        student=request.user,
+        created_at__gte=week_ago,
+        event_type='heartbeat'
+    )
+    hours_spent = round(watch_events.count() * 10 / 3600, 1)
+    
+    # Count actually completed courses (all modules completed)
+    enrollments = Enrollment.objects.filter(
+        student=request.user,
+        is_paid=True
+    ).select_related("course")
+    
+    completed_courses = 0
+    for enrollment in enrollments:
+        total_modules = Module.objects.filter(course=enrollment.course).count()
+        if total_modules > 0:
+            completed_modules = StudentProgress.objects.filter(
+                student=request.user,
+                course=enrollment.course,
+                is_completed=True
+            ).count()
+            if completed_modules == total_modules:
+                completed_courses += 1
+    
+    # Calculate average score from quiz attempts
+    quiz_attempts = QuizAttempt.objects.filter(user=request.user)
+    if quiz_attempts.exists():
+        avg_score = round(
+            sum(attempt.score for attempt in quiz_attempts if attempt.score) / 
+            quiz_attempts.count(), 1
+        )
+    else:
+        avg_score = 0
+    
+    # Get weekly activity data for the chart
+    weekly_data = []
+    for i in range(6, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        day_events = WatchEvent.objects.filter(
             student=request.user,
-            is_paid=True
-        ).count(),
-        "average_score": 88
+            created_at__date=date,
+            event_type='heartbeat'
+        )
+        hours = round(day_events.count() * 10 / 3600, 1)
+        weekly_data.append({
+            'day': date.strftime('%a'),
+            'hours': hours
+        })
+    
+    return render(request, "student/analytics.html", {
+        "hours_spent": hours_spent,
+        "completed_courses": completed_courses,
+        "average_score": avg_score,
+        "weekly_data": weekly_data
     })
 
 
