@@ -1026,7 +1026,7 @@ def admin_dashboard(request):
     # Get immutable logs count
     from events.models import ImmutableLog
     total_logs = ImmutableLog.objects.count()
-    recent_logs = ImmutableLog.objects.order_by('-timestamp')[:20]
+    recent_logs = ImmutableLog.objects.order_by('-created_at')[:20]
     
     # Blockchain anchor status (mock if not implemented)
     blockchain_status = {
