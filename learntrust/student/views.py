@@ -30,6 +30,7 @@ from quizzes.models import QuizAttempt
 from events.models import ImmutableLog
 from .services import validate_module_unlock
 from streaming.utils import generate_signed_token
+from .moodle_api import get_user_courses
 
 def test_api(request):
     moodle_url = settings.MOODLE_BASE_URL
@@ -183,6 +184,19 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
+            
+            # Sync user with Moodle
+            try:
+                from .moodle_api import sync_user_with_moodle
+                profile, created = StudentProfile.objects.get_or_create(user=user)
+                if not profile.moodle_user_id:
+                    moodle_user_id = sync_user_with_moodle(user)
+                    profile.moodle_user_id = moodle_user_id
+                    profile.save()
+            except Exception as e:
+                # Log error but don't block login
+                import logging
+                logging.getLogger(__name__).error(f"Moodle sync failed: {e}")
             
             # Check user role and redirect accordingly
             try:
@@ -353,7 +367,31 @@ def dashboard(request):
         release_date__gt=timezone.now()
     ).order_by('release_date')[:3]
     
-    moodle_courses, moodle_error = fetch_moodle_courses()
+    # Fetch Moodle courses for this user
+    moodle_courses = []
+    moodle_error = None
+    
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+        if profile.moodle_user_id:
+            moodle_courses_raw = get_user_courses(profile.moodle_user_id)
+            moodle_courses = [
+                {
+                    "id": course.get("id"),
+                    "fullname": course.get("fullname") or "",
+                    "shortname": course.get("shortname") or "",
+                    "url": f"{settings.MOODLE_BASE_URL}/course/view.php?id={course.get('id')}",
+                }
+                for course in moodle_courses_raw
+            ]
+        else:
+            moodle_error = "Moodle account not synced yet"
+    except StudentProfile.DoesNotExist:
+        moodle_error = "Profile not found"
+    except Exception as e:
+        moodle_error = "Unable to fetch Moodle courses"
+        if settings.DEBUG:
+            print(f"[Moodle] Error fetching user courses: {e}")
 
     return render(
         request,

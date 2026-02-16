@@ -33,6 +33,7 @@ class StudentProfile(models.Model):
         blank=True
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    moodle_user_id = models.IntegerField(null=True, blank=True, help_text="Moodle user ID for API integration")
 
     def __str__(self):
         return self.user.username

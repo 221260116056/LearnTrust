@@ -610,18 +610,31 @@
                 {% endif %}
             </div>
 
-            <!-- Suggested Courses -->
+            <!-- My Moodle Courses -->
             {% if moodle_courses %}
             <div class="notifications-panel">
                 <div class="panel-header">
-                    <div class="panel-title">Recommended Courses</div>
+                    <div class="panel-title">My Moodle Courses</div>
                 </div>
-                {% for course in moodle_courses|slice:":2" %}
+                {% for course in moodle_courses %}
                 <div class="notification-item">
-                    <div class="notification-message">{{ course.fullname|default:course.shortname }}</div>
-                    <div class="notification-time">Available on Moodle</div>
+                    <div class="notification-message">
+                        <a href="{{ course.url }}" target="_blank" style="text-decoration: none; color: #1a1a2e;">
+                            {{ course.fullname|default:course.shortname }}
+                        </a>
+                    </div>
+                    <div class="notification-time">Moodle Course</div>
                 </div>
                 {% endfor %}
+            </div>
+            {% elif moodle_error %}
+            <div class="notifications-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Moodle Courses</div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-message" style="color: #6b7280;">{{ moodle_error }}</div>
+                </div>
             </div>
             {% endif %}
         </div>
