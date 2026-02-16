@@ -29,6 +29,7 @@ urlpatterns = [
     path("analytics/", views.analytics, name="analytics"),
     path("settings/", views.settings_page, name="settings"),
     path("certificates/", views.certificates, name="certificates"),
+    path("notifications/", views.notifications, name="notifications"),
 
     # 🔌 APIs
     path("api/enrollments/", enrollment_api, name="api_enrollments"),

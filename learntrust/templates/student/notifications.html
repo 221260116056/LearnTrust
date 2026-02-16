@@ -86,183 +86,151 @@
 {% block content %}
 
 <style>
-    .my-courses-page {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
+    .notifications-page {
+        padding: 24px;
+        max-width: 1000px;
     }
 
-    .my-courses-header h1 {
-        margin: 0;
+    .notifications-header {
+        margin-bottom: 24px;
+    }
+
+    .notifications-header h1 {
         font-size: 24px;
         font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 8px;
     }
 
-    .my-courses-header p {
-        margin: 0;
+    .notifications-header p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .notifications-list {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+
+    .notification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .notification-icon.info {
+        background: #dbeafe;
+    }
+
+    .notification-icon.success {
+        background: #d1fae5;
+    }
+
+    .notification-icon.warning {
+        background: #fef3c7;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 4px;
+    }
+
+    .notification-message {
         font-size: 14px;
         color: #6b7280;
+        margin-bottom: 4px;
     }
 
-    .courses-list {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .course-row {
-        display: grid;
-        grid-template-columns: 190px minmax(0, 1fr) auto;
-        gap: 18px;
-        background: #ffffff;
-        border-radius: 18px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
-        padding: 14px 18px;
-        align-items: center;
-    }
-
-    .course-thumb {
-        position: relative;
-        border-radius: 14px;
-        overflow: hidden;
-        height: 96px;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-image: linear-gradient(135deg, #1f2937, #111827);
-    }
-
-    .course-tag {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        padding: 3px 10px;
-        border-radius: 999px;
-        background: rgba(17, 24, 39, 0.85);
-        color: #f9fafb;
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    .course-main {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .course-title {
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .course-author {
+    .notification-time {
         font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px;
         color: #6b7280;
     }
 
-    .course-lessons {
-        font-size: 12px;
-        color: #6b7280;
-    }
-
-    .course-progress-bar {
-        margin-top: 6px;
-        width: 100%;
-        height: 6px;
-        border-radius: 999px;
-        background: #e5e7eb;
-        overflow: hidden;
-    }
-
-    .course-progress-fill {
-        height: 100%;
-        background: #111827;
-        width: 0;
-        transition: width 0.6s ease;
-    }
-
-    .course-next {
-        margin-top: 4px;
-        font-size: 12px;
-        color: #4b5563;
-    }
-
-    .course-side {
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-    }
-
-    .course-continue-btn {
-        padding: 7px 16px;
-        border-radius: 999px;
+    .mark-all-btn {
+        background: white;
         border: 1px solid #e5e7eb;
-        background: #ffffff;
+        color: #374151;
+        padding: 8px 16px;
+        border-radius: 6px;
         font-size: 13px;
         cursor: pointer;
+        float: right;
+        margin-bottom: 16px;
     }
 
-    @media (max-width: 1024px) {
-        .course-row {
-            grid-template-columns: 1fr;
-        }
+    .mark-all-btn:hover {
+        background: #f9fafb;
     }
 </style>
 
-<div class="my-courses-page">
-    <div class="my-courses-header">
-        <h1>My Courses</h1>
-        <p>All the courses you’re enrolled in, in one place.</p>
+<div class="notifications-page">
+    <div class="notifications-header">
+        <h1>Notifications</h1>
+        <p>Stay updated with your learning progress</p>
     </div>
 
-    {% if courses_progress %}
-        <div class="courses-list">
-            {% for item in courses_progress %}
-                {% with course=item.course progress=item.progress|default:0 %}
-                <article class="course-row">
-                    <div class="course-thumb">
-                        <div class="course-tag">
-                            {{ course.category|default:"Course" }}
-                        </div>
-                    </div>
-                    <div class="course-main">
-                        <div class="course-title">{{ course.title }}</div>
-                        <div class="course-author">
-                            by {{ course.instructor_name|default:"Your Instructor" }}
-                        </div>
-                        <div class="course-lessons">
-                            {{ progress }}% of course completed
-                        </div>
-                        <div class="course-progress-bar">
-                            <div class="course-progress-fill" data-progress="{{ progress }}"></div>
-                        </div>
-                        <div class="course-next">
-                            Continue where you left off.
-                        </div>
-                    </div>
-                    <div class="course-side">
-                        <button class="course-continue-btn"
-                                onclick="location.href='/course/{{ course.id }}/'">
-                            Continue
-                        </button>
-                    </div>
-                </article>
-                {% endwith %}
+    <div class="notifications-list">
+        {% if notifications %}
+            <button class="mark-all-btn" onclick="markAllRead()">Mark all as read</button>
+            <div style="clear: both;"></div>
+            
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-icon {% if notification.type == 'success' %}success{% elif notification.type == 'warning' %}warning{% else %}info{% endif %}">
+                    {% if notification.type == 'success' %}✅{% elif notification.type == 'warning' %}⚠️{% else %}📢{% endif %}
+                </div>
+                <div class="notification-content">
+                    <div class="notification-title">{{ notification.title|default:"Notification" }}</div>
+                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-time">{{ notification.created_at|timesince }} ago</div>
+                </div>
+            </div>
             {% endfor %}
-        </div>
-    {% else %}
-        <p>You are not enrolled in any courses yet.</p>
-    {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <p>No notifications yet</p>
+                <p style="font-size: 13px; margin-top: 8px;">We'll notify you about course updates, deadlines, and achievements</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".course-progress-fill").forEach(function (bar) {
-        var value = parseInt(bar.dataset.progress) || 0;
-        bar.style.width = value + "%";
-    });
-});
+function markAllRead() {
+    // This would typically make an AJAX call to mark all notifications as read
+    alert('All notifications marked as read!');
+}
 </script>
 
 {% endblock %}

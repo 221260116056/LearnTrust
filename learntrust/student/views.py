@@ -676,6 +676,23 @@ def certificates(request):
 
 
 # ---------------------------------
+# NOTIFICATIONS
+# ---------------------------------
+@login_required
+def notifications(request):
+    """
+    Show user notifications
+    """
+    user_notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by("-created_at")[:50]
+
+    return render(request, "student/notifications.html", {
+        "notifications": user_notifications
+    })
+
+
+# ---------------------------------
 # SIGNUP (EMAIL BASED + AUTO LOGIN)
 # ---------------------------------
 def signup(request):
