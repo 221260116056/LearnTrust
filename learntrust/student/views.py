@@ -380,6 +380,7 @@ def dashboard(request):
                     "id": course.get("id"),
                     "fullname": course.get("fullname") or "",
                     "shortname": course.get("shortname") or "",
+                    "summary": course.get("summary") or "",
                     "url": f"{settings.MOODLE_BASE_URL}/course/view.php?id={course.get('id')}",
                 }
                 for course in moodle_courses_raw
@@ -1032,6 +1033,7 @@ def teacher_dashboard(request):
                     "id": course.get("id"),
                     "fullname": course.get("fullname") or "",
                     "shortname": course.get("shortname") or "",
+                    "summary": course.get("summary") or "",
                     "url": f"{settings.MOODLE_BASE_URL}/course/view.php?id={course.get('id')}",
                 }
                 for course in moodle_courses_raw

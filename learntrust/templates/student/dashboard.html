@@ -441,6 +441,120 @@
         opacity: 0.5;
     }
 
+    /* Suggested Courses Section */
+    .suggested-courses-panel {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        margin-top: 24px;
+    }
+
+    .suggested-courses-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .suggested-courses-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .suggested-courses-subtitle {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .moodle-course-card {
+        display: flex;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .moodle-course-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .moodle-course-image {
+        width: 120px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        flex-shrink: 0;
+    }
+
+    .moodle-badge {
+        background: #1a1a2e;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .moodle-course-content {
+        flex: 1;
+    }
+
+    .moodle-course-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 8px;
+    }
+
+    .moodle-course-description {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .moodle-course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .moodle-course-next {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .moodle-enroll-btn {
+        background: white;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .moodle-enroll-btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+
     @media (max-width: 1024px) {
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -574,6 +688,36 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Suggested Moodle Courses -->
+            {% if moodle_courses %}
+            <div class="suggested-courses-panel">
+                <div class="suggested-courses-header">
+                    <div>
+                        <div class="suggested-courses-title">Suggested courses</div>
+                        <div class="suggested-courses-subtitle">Courses added by teachers for enrollment</div>
+                    </div>
+                </div>
+                
+                {% for course in moodle_courses %}
+                <div class="moodle-course-card">
+                    <div class="moodle-course-image">
+                        <span class="moodle-badge">Moodle</span>
+                    </div>
+                    <div class="moodle-course-content">
+                        <div class="moodle-course-title">{{ course.fullname|default:course.shortname }}</div>
+                        <div class="moodle-course-description">
+                            {{ course.summary|default:"This course is available on Moodle. Click to view and enroll."|striptags|truncatechars:120 }}
+                        </div>
+                        <div class="moodle-course-footer">
+                            <span class="moodle-course-next">Next: Open in Moodle to view and enroll</span>
+                            <a href="{{ course.url }}" target="_blank" class="moodle-enroll-btn">View / Enroll</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Right Column - Notifications -->
@@ -609,34 +753,6 @@
                 </div>
                 {% endif %}
             </div>
-
-            <!-- My Moodle Courses -->
-            {% if moodle_courses %}
-            <div class="notifications-panel">
-                <div class="panel-header">
-                    <div class="panel-title">My Moodle Courses</div>
-                </div>
-                {% for course in moodle_courses %}
-                <div class="notification-item">
-                    <div class="notification-message">
-                        <a href="{{ course.url }}" target="_blank" style="text-decoration: none; color: #1a1a2e;">
-                            {{ course.fullname|default:course.shortname }}
-                        </a>
-                    </div>
-                    <div class="notification-time">Moodle Course</div>
-                </div>
-                {% endfor %}
-            </div>
-            {% elif moodle_error %}
-            <div class="notifications-panel">
-                <div class="panel-header">
-                    <div class="panel-title">Moodle Courses</div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-message" style="color: #6b7280;">{{ moodle_error }}</div>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
