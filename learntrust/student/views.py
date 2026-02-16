@@ -692,10 +692,41 @@ def analytics(request):
 def settings_page(request):
     profile, _ = StudentProfile.objects.get_or_create(user=request.user)
 
-    if request.method == "POST" and request.FILES.get("profile_image"):
-        profile.profile_image = request.FILES["profile_image"]
-        profile.save()
-        return redirect("settings")
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "update_profile":
+            # Update user information
+            new_username = request.POST.get("username", request.user.username).strip()
+            new_email = request.POST.get("email", request.user.email).strip()
+            new_first_name = request.POST.get("first_name", "").strip()
+            new_last_name = request.POST.get("last_name", "").strip()
+            
+            # Check if username is already taken by another user
+            if new_username != request.user.username:
+                if User.objects.filter(username=new_username).exclude(id=request.user.id).exists():
+                    messages.error(request, "Username already taken. Please choose another.")
+                    return redirect("settings")
+                request.user.username = new_username
+            
+            # Check if email is already taken by another user
+            if new_email != request.user.email:
+                if User.objects.filter(email=new_email).exclude(id=request.user.id).exists():
+                    messages.error(request, "Email already in use. Please choose another.")
+                    return redirect("settings")
+                request.user.email = new_email
+            
+            request.user.first_name = new_first_name
+            request.user.last_name = new_last_name
+            request.user.save()
+            
+            # Update profile image if provided
+            if request.FILES.get("profile_image"):
+                profile.profile_image = request.FILES["profile_image"]
+                profile.save()
+            
+            messages.success(request, "Profile updated successfully!")
+            return redirect("settings")
 
     return render(request, "student/settings.html", {
         "profile": profile
