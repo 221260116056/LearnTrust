@@ -792,6 +792,77 @@ def teacher_analytics(request, course_id):
 
 
 # ---------------------------------
+# TEACHER LOGS VIEW
+# ---------------------------------
+@login_required
+@role_required('teacher')
+def teacher_logs(request):
+    """
+    Teacher audit logs view - shows watch events and compliance logs
+    """
+    from events.models import ImmutableLog
+    
+    # Get all logs for courses/modules this teacher manages
+    logs = ImmutableLog.objects.select_related('user', 'module').order_by('-created_at')[:100]
+    
+    return render(request, 'student/teacher_logs.html', {
+        'logs': logs
+    })
+
+
+# ---------------------------------
+# TEACHER CERTIFICATES VIEW
+# ---------------------------------
+@login_required
+@role_required('teacher')
+def teacher_certificates(request):
+    """
+    Teacher certificate management view
+    """
+    from certificates.models import Certificate
+    
+    certificates = Certificate.objects.select_related('student', 'course').order_by('-issued_at')[:50]
+    
+    return render(request, 'student/teacher_certificates.html', {
+        'certificates': certificates
+    })
+
+
+# ---------------------------------
+# TEACHER SETTINGS VIEW
+# ---------------------------------
+@login_required
+@role_required('teacher')
+def teacher_settings(request):
+    """
+    Teacher settings view for certificate signer and other configs
+    """
+    from student.models import SystemSettings
+    
+    settings_obj = SystemSettings.objects.first()
+    if not settings_obj:
+        settings_obj = SystemSettings.objects.create(
+            token_expiry_minutes=10,
+            heartbeat_interval_seconds=10,
+            max_micro_quiz_failures=3,
+            certificate_signer_name='LearnTrust Administrator'
+        )
+    
+    if request.method == 'POST':
+        settings_obj.certificate_signer_name = request.POST.get('signer_name', settings_obj.certificate_signer_name)
+        settings_obj.token_expiry_minutes = int(request.POST.get('token_expiry', settings_obj.token_expiry_minutes))
+        settings_obj.heartbeat_interval_seconds = int(request.POST.get('heartbeat_interval', settings_obj.heartbeat_interval_seconds))
+        settings_obj.max_micro_quiz_failures = int(request.POST.get('max_failures', settings_obj.max_micro_quiz_failures))
+        settings_obj.save()
+        messages.success(request, "Settings updated successfully")
+        return redirect('teacher_settings')
+    
+    return render(request, 'student/teacher_settings.html', {
+        'settings': settings_obj
+    })
+
+
+# ---------------------------------
 # TEACHER DASHBOARD (MAIN)
 # ---------------------------------
 @login_required
