@@ -1129,3 +1129,190 @@ def admin_dashboard(request):
         'recent_logs': recent_logs,
         'blockchain_status': blockchain_status
     })
+
+
+# ---------------------------------
+# ADMIN USER MANAGEMENT
+# ---------------------------------
+@login_required
+@role_required('admin')
+def admin_user_management(request):
+    """
+    Admin user management page
+    """
+    from django.contrib.auth.models import User
+    
+    users = User.objects.select_related('studentprofile').all().order_by('-date_joined')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'change_role':
+            user_id = request.POST.get('user_id')
+            new_role = request.POST.get('new_role')
+            user = get_object_or_404(User, id=user_id)
+            
+            profile, _ = StudentProfile.objects.get_or_create(user=user)
+            profile.role = new_role
+            profile.save()
+            
+            messages.success(request, f"Role updated for {user.username}")
+            return redirect('admin_user_management')
+        
+        elif action == 'toggle_active':
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, id=user_id)
+            user.is_active = not user.is_active
+            user.save()
+            
+            status = "activated" if user.is_active else "deactivated"
+            messages.success(request, f"Account {status} for {user.username}")
+            return redirect('admin_user_management')
+        
+        elif action == 'delete_user':
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, id=user_id)
+            username = user.username
+            user.delete()
+            messages.success(request, f"User {username} deleted")
+            return redirect('admin_user_management')
+    
+    # Calculate stats
+    total_users = users.count()
+    active_users = users.filter(is_active=True).count()
+    student_count = sum(1 for u in users if hasattr(u, 'studentprofile') and u.studentprofile.role == 'student')
+    teacher_count = sum(1 for u in users if hasattr(u, 'studentprofile') and u.studentprofile.role == 'teacher')
+    admin_count = sum(1 for u in users if hasattr(u, 'studentprofile') and u.studentprofile.role == 'admin')
+    
+    return render(request, 'student/admin_user_management.html', {
+        'users': users,
+        'role_choices': StudentProfile.ROLE_CHOICES,
+        'stats': {
+            'total': total_users,
+            'active': active_users,
+            'students': student_count,
+            'teachers': teacher_count,
+            'admins': admin_count
+        }
+    })
+
+
+# ---------------------------------
+# ADMIN CERTIFICATE GOVERNANCE
+# ---------------------------------
+@login_required
+@role_required('admin')
+def admin_certificate_governance(request):
+    """
+    Admin certificate governance page
+    """
+    from certificates.models import Certificate
+    
+    certificates = Certificate.objects.select_related('student', 'course').order_by('-issued_at')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'revoke_certificate':
+            certificate_id = request.POST.get('certificate_id')
+            certificate = get_object_or_404(Certificate, id=certificate_id)
+            user_name = certificate.student.username
+            certificate.is_revoked = True
+            certificate.save()
+            
+            messages.success(request, f"Certificate revoked for {user_name}")
+            return redirect('admin_certificate_governance')
+        
+        elif action == 'activate_certificate':
+            certificate_id = request.POST.get('certificate_id')
+            certificate = get_object_or_404(Certificate, id=certificate_id)
+            certificate.is_revoked = False
+            certificate.save()
+            
+            messages.success(request, f"Certificate reactivated for {certificate.student.username}")
+            return redirect('admin_certificate_governance')
+    
+    total_certificates = certificates.count()
+    revoked_certificates = certificates.filter(is_revoked=True).count()
+    active_certificates = total_certificates - revoked_certificates
+    
+    return render(request, 'student/admin_certificate_governance.html', {
+        'certificates': certificates,
+        'stats': {
+            'total': total_certificates,
+            'active': active_certificates,
+            'revoked': revoked_certificates
+        }
+    })
+
+
+# ---------------------------------
+# ADMIN SYSTEM CONFIG
+# ---------------------------------
+@login_required
+@role_required('admin')
+def admin_system_config(request):
+    """
+    Admin system configuration page
+    """
+    system_settings = SystemSettings.objects.first()
+    if not system_settings:
+        system_settings = SystemSettings.objects.create(
+            token_expiry_minutes=10,
+            heartbeat_interval_seconds=10,
+            max_micro_quiz_failures=3,
+            certificate_signer_name='LearnTrust Administrator'
+        )
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_settings':
+            system_settings.token_expiry_minutes = int(request.POST.get('token_expiry', 10))
+            system_settings.heartbeat_interval_seconds = int(request.POST.get('heartbeat_interval', 10))
+            system_settings.max_micro_quiz_failures = int(request.POST.get('max_failures', 3))
+            system_settings.certificate_signer_name = request.POST.get('signer_name', 'LearnTrust Administrator')
+            system_settings.updated_by = request.user
+            system_settings.save()
+            
+            messages.success(request, "System settings updated successfully")
+            return redirect('admin_system_config')
+    
+    return render(request, 'student/admin_system_config.html', {
+        'system_settings': system_settings
+    })
+
+
+# ---------------------------------
+# ADMIN COMPLIANCE & AUDIT
+# ---------------------------------
+@login_required
+@role_required('admin')
+def admin_compliance_audit(request):
+    """
+    Admin compliance and audit page
+    """
+    from events.models import ImmutableLog
+    
+    logs = ImmutableLog.objects.select_related('user', 'module').order_by('-created_at')[:100]
+    total_logs = ImmutableLog.objects.count()
+    
+    # Get log statistics
+    event_types = {}
+    for log in ImmutableLog.objects.all():
+        event_types[log.event_type] = event_types.get(log.event_type, 0) + 1
+    
+    # Blockchain status
+    from certificates.models import Certificate
+    blockchain_status = {
+        'enabled': True,
+        'last_anchor': timezone.now() - timedelta(hours=2),
+        'total_anchored': Certificate.objects.exclude(certificate_hash='').count()
+    }
+    
+    return render(request, 'student/admin_compliance_audit.html', {
+        'logs': logs,
+        'total_logs': total_logs,
+        'event_types': event_types,
+        'blockchain_status': blockchain_status
+    })

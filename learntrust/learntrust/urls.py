@@ -24,6 +24,10 @@ from student import views  # ✅ IMPORT STUDENT VIEWS
 urlpatterns = [
     # 👨‍💼 CUSTOM ADMIN DASHBOARD (Must be BEFORE Django admin)
     path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
+    path("admin/users/", views.admin_user_management, name="admin_user_management"),
+    path("admin/certificates/", views.admin_certificate_governance, name="admin_certificate_governance"),
+    path("admin/config/", views.admin_system_config, name="admin_system_config"),
+    path("admin/compliance/", views.admin_compliance_audit, name="admin_compliance_audit"),
     
     # 🔧 DJANGO ADMIN
     path('admin/', admin.site.urls),

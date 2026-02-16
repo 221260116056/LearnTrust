@@ -18,8 +18,8 @@
                 <span class="menu-label">Admin Dashboard</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
-            <a href="{% url 'admin_dashboard' %}">
+        <li class="{% if request.resolver_match.url_name == 'admin_user_management' %}active{% endif %}">
+            <a href="{% url 'admin_user_management' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -29,8 +29,8 @@
                 <span class="menu-label">User Management</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'certificate_governance' %}active{% endif %}">
-            <a href="{% url 'admin_dashboard' %}">
+        <li class="{% if request.resolver_match.url_name == 'admin_certificate_governance' %}active{% endif %}">
+            <a href="{% url 'admin_certificate_governance' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
@@ -40,8 +40,8 @@
                 <span class="menu-label">Certificate Governance</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'system_config' %}active{% endif %}">
-            <a href="{% url 'admin_dashboard' %}">
+        <li class="{% if request.resolver_match.url_name == 'admin_system_config' %}active{% endif %}">
+            <a href="{% url 'admin_system_config' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 14.5C13.3807 14.5 14.5 13.3807 14.5 12C14.5 10.6193 13.3807 9.5 12 9.5C10.6193 9.5 9.5 10.6193 9.5 12C9.5 13.3807 10.6193 14.5 12 14.5Z" stroke="currentColor" stroke-width="1.5"/>
@@ -56,8 +56,8 @@
                 <span class="menu-label">System Config</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'compliance_audit' %}active{% endif %}">
-            <a href="{% url 'admin_dashboard' %}">
+        <li class="{% if request.resolver_match.url_name == 'admin_compliance_audit' %}active{% endif %}">
+            <a href="{% url 'admin_compliance_audit' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 11H15M9 15H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12L17 8V19C17 20.1046 16.1046 21 15 21H17Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
