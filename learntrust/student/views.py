@@ -385,14 +385,58 @@ def dashboard(request):
                 }
                 for course in moodle_courses_raw
             ]
-        else:
-            moodle_error = "Moodle account not synced yet"
+        
+        # If no enrolled courses or no moodle_user_id, show all available courses
+        if not moodle_courses:
+            # Fetch all available courses from Moodle
+            all_courses, error = fetch_moodle_courses()
+            if not error and all_courses:
+                moodle_courses = [
+                    {
+                        "id": course.get("id"),
+                        "fullname": course.get("fullname") or "",
+                        "shortname": course.get("shortname") or "",
+                        "summary": course.get("summary") or "",
+                        "url": course.get("url"),
+                    }
+                    for course in all_courses
+                ]
+            elif error:
+                moodle_error = error
     except StudentProfile.DoesNotExist:
-        moodle_error = "Profile not found"
+        # Still try to fetch all available courses
+        all_courses, error = fetch_moodle_courses()
+        if not error and all_courses:
+            moodle_courses = [
+                {
+                    "id": course.get("id"),
+                    "fullname": course.get("fullname") or "",
+                    "shortname": course.get("shortname") or "",
+                    "summary": course.get("summary") or "",
+                    "url": course.get("url"),
+                }
+                for course in all_courses
+            ]
+        else:
+            moodle_error = "Profile not found"
     except Exception as e:
-        moodle_error = "Unable to fetch Moodle courses"
-        if settings.DEBUG:
-            print(f"[Moodle] Error fetching user courses: {e}")
+        # Fallback to fetching all courses
+        all_courses, error = fetch_moodle_courses()
+        if not error and all_courses:
+            moodle_courses = [
+                {
+                    "id": course.get("id"),
+                    "fullname": course.get("fullname") or "",
+                    "shortname": course.get("shortname") or "",
+                    "summary": course.get("summary") or "",
+                    "url": course.get("url"),
+                }
+                for course in all_courses
+            ]
+        else:
+            moodle_error = "Unable to fetch Moodle courses"
+            if settings.DEBUG:
+                print(f"[Moodle] Error fetching courses: {e}")
 
     return render(
         request,
