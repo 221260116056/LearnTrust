@@ -1,0 +1,713 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .teacher-dashboard {
+        padding: 24px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header p {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    /* Two Column Layout */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+
+    /* Course Management Panel */
+    .panel {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        margin-bottom: 24px;
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .btn-edit {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .btn-toggle {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .btn-toggle.unpublished {
+        background: #6b7280;
+    }
+
+    /* Course List */
+    .course-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .course-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fafafa;
+    }
+
+    .course-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .course-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    .course-status {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    .course-status.published {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .course-status.unpublished {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    /* Module Rules Section */
+    .module-rules {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .module-rules-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 12px;
+    }
+
+    .module-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .module-item {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+    }
+
+    .module-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 8px;
+    }
+
+    .module-rules-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+        font-size: 12px;
+    }
+
+    .rule-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        background: #f3f4f6;
+        border-radius: 6px;
+    }
+
+    .rule-label {
+        color: #6b7280;
+    }
+
+    .rule-value {
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+
+    /* Student Analytics Table */
+    .analytics-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .analytics-table th,
+    .analytics-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .analytics-table th {
+        font-weight: 600;
+        color: #374151;
+        background: #f9fafb;
+    }
+
+    .progress-bar {
+        background: #e5e7eb;
+        border-radius: 4px;
+        height: 6px;
+        overflow: hidden;
+        width: 100px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+    }
+
+    /* Compliance Tools */
+    .compliance-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .compliance-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .compliance-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .compliance-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .compliance-btn {
+        background: white;
+        border: 1px solid #e5e7eb;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        color: #374151;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input[type="checkbox"] {
+        width: auto;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    @media (max-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .compliance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="teacher-dashboard">
+    <div class="dashboard-header">
+        <h1>Teacher Dashboard</h1>
+        <p>Manage your courses, set module rules, and track student progress.</p>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Left Column -->
+        <div class="left-column">
+            <!-- Course Management -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">My Courses</div>
+                    <button class="btn-primary" onclick="document.getElementById('createCourseModal').classList.add('active')">
+                        + Create Course
+                    </button>
+                </div>
+
+                <div class="course-list">
+                    {% for course_data in course_analytics %}
+                    <div class="course-item">
+                        <div class="course-header">
+                            <div>
+                                <div class="course-title">{{ course_data.course.title }}</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                    {{ course_data.total_students }} students enrolled
+                                </div>
+                            </div>
+                            <span class="course-status {% if course_data.course.is_active %}published{% else %}unpublished{% endif %}">
+                                {% if course_data.course.is_active %}Published{% else %}Unpublished{% endif %}
+                            </span>
+                        </div>
+
+                        <div class="course-actions">
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="toggle_publish">
+                                <input type="hidden" name="course_id" value="{{ course_data.course.id }}">
+                                <button type="submit" class="btn-toggle {% if not course_data.course.is_active %}unpublished{% endif %}">
+                                    {% if course_data.course.is_active %}Unpublish{% else %}Publish{% endif %}
+                                </button>
+                            </form>
+                            <button class="btn-edit" onclick="editCourse({{ course_data.course.id }}, '{{ course_data.course.title }}', '{{ course_data.course.description }}', {{ course_data.course.price }})">
+                                Edit
+                            </button>
+                            <a href="{% url 'teacher_course_editor' course_data.course.id %}" class="btn-edit" style="text-decoration: none;">
+                                Modules
+                            </a>
+                            <form method="post" style="display: inline;" onsubmit="return confirm('Delete this course?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_course">
+                                <input type="hidden" name="course_id" value="{{ course_data.course.id }}">
+                                <button type="submit" class="btn-delete">Delete</button>
+                            </form>
+                        </div>
+
+                        <!-- Module Rules -->
+                        <div class="module-rules">
+                            <div class="module-rules-title">Module Enforcement Rules</div>
+                            <div class="module-list">
+                                {% for module in course_data.modules %}
+                                <div class="module-item">
+                                    <div class="module-name">{{ module.title }}</div>
+                                    <div class="module-rules-grid">
+                                        <div class="rule-item">
+                                            <span class="rule-label">Min Watch:</span>
+                                            <span class="rule-value">{{ module.min_watch_percent }}%</span>
+                                        </div>
+                                        <div class="rule-item">
+                                            <span class="rule-label">Quiz Required:</span>
+                                            <span class="rule-value">{% if module.must_pass_quiz %}Yes{% else %}No{% endif %}</span>
+                                        </div>
+                                        <div class="rule-item">
+                                            <span class="rule-label">Attempts:</span>
+                                            <span class="rule-value">{{ module.allowed_attempts }}</span>
+                                        </div>
+                                        <div class="rule-item">
+                                            <span class="rule-label">Seeking:</span>
+                                            <span class="rule-value">{% if module.disable_seeking %}Disabled{% else %}Enabled{% endif %}</span>
+                                        </div>
+                                        <div class="rule-item">
+                                            <span class="rule-label">Timeout:</span>
+                                            <span class="rule-value">{{ module.timeout_seconds }}s</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-edit btn-sm" style="margin-top: 8px;" onclick="editModuleRules({{ module.id }}, {{ module.min_watch_percent }}, {% if module.must_pass_quiz %}true{% else %}false{% endif %}, {{ module.allowed_attempts }}, {% if module.disable_seeking %}true{% else %}false{% endif %}, {{ module.timeout_seconds }})">
+                                        Edit Rules
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="color: #6b7280; text-align: center;">No courses created yet. Create your first course!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Student Analytics -->
+            {% for course_data in course_analytics %}
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Student Analytics: {{ course_data.course.title }}</div>
+                    <a href="{% url 'teacher_analytics' course_data.course.id %}" class="btn-primary btn-sm">View Detailed</a>
+                </div>
+
+                <table class="analytics-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Watch %</th>
+                            <th>Completed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student_stat in course_data.student_stats|slice:":5" %}
+                        <tr>
+                            <td>{{ student_stat.student.username }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: {{ student_stat.avg_watch_percent }}%"></div>
+                                    </div>
+                                    <span style="font-size: 12px;">{{ student_stat.avg_watch_percent }}%</span>
+                                </div>
+                            </td>
+                            <td>{{ student_stat.completed_modules }}/{{ student_stat.total_modules }}</td>
+                            <td>
+                                <a href="{% url 'api_module_heatmap' course_data.modules.first.id %}" class="btn-edit btn-sm" target="_blank">Heatmap</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Right Column -->
+        <div class="right-column">
+            <!-- Compliance Tools -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Compliance Tools</div>
+                </div>
+
+                <div class="compliance-grid">
+                    <div class="compliance-item">
+                        <div class="compliance-icon">📊</div>
+                        <div class="compliance-title">Export Logs</div>
+                        <a href="{% url 'export_logs' 1 %}?format=csv" class="compliance-btn">CSV</a>
+                        <a href="{% url 'export_logs' 1 %}?format=pdf" class="compliance-btn">PDF</a>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-icon">📜</div>
+                        <div class="compliance-title">Audit Logs</div>
+                        <a href="{% url 'admin:index' %}events/immutablelog/" class="compliance-btn" target="_blank">View</a>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-icon">🎓</div>
+                        <div class="compliance-title">Certificate Editor</div>
+                        <a href="{% url 'admin:index' %}certificates/certificate/" class="compliance-btn" target="_blank">Edit</a>
+                    </div>
+                    <div class="compliance-item">
+                        <div class="compliance-icon">⚙️</div>
+                        <div class="compliance-title">System Settings</div>
+                        <a href="{% url 'admin:index' %}student/systemsettings/" class="compliance-btn" target="_blank">Configure</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Quick Stats</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div style="text-align: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: 700; color: #1a1a2e;">{{ courses|length }}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Total Courses</div>
+                    </div>
+                    <div style="text-align: center; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: 700; color: #1a1a2e;">
+                            {% with total=0 %}
+                                {% for course_data in course_analytics %}
+                                    {% with total=total|add:course_data.total_students %}{% endwith %}
+                                {% endfor %}
+                                {{ total }}
+                            {% endwith %}
+                        </div>
+                        <div style="font-size: 12px; color: #6b7280;">Total Students</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Course Modal -->
+<div class="modal" id="createCourseModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Create New Course</div>
+            <button class="close-btn" onclick="document.getElementById('createCourseModal').classList.remove('active')">&times;</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_course">
+            
+            <div class="form-group">
+                <label>Course Title</label>
+                <input type="text" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" name="price" value="0" step="0.01">
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%;">Create Course</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Course Modal -->
+<div class="modal" id="editCourseModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Edit Course</div>
+            <button class="close-btn" onclick="document.getElementById('editCourseModal').classList.remove('active')">&times;</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_course">
+            <input type="hidden" name="course_id" id="edit_course_id">
+            
+            <div class="form-group">
+                <label>Course Title</label>
+                <input type="text" name="title" id="edit_course_title" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" id="edit_course_description" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" name="price" id="edit_course_price" step="0.01">
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%;">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Module Rules Modal -->
+<div class="modal" id="editModuleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Edit Module Rules</div>
+            <button class="close-btn" onclick="document.getElementById('editModuleModal').classList.remove('active')">&times;</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_module_rules">
+            <input type="hidden" name="module_id" id="edit_module_id">
+            
+            <div class="form-group">
+                <label>Minimum Watch Percentage</label>
+                <input type="number" name="min_watch_percent" id="edit_min_watch" min="0" max="100" value="80">
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" name="must_pass_quiz" id="edit_must_quiz">
+                <label for="edit_must_quiz">Require Quiz Pass</label>
+            </div>
+            
+            <div class="form-group">
+                <label>Allowed Attempts</label>
+                <input type="number" name="allowed_attempts" id="edit_attempts" min="1" value="3">
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" name="disable_seeking" id="edit_disable_seeking">
+                <label for="edit_disable_seeking">Disable Video Seeking</label>
+            </div>
+            
+            <div class="form-group">
+                <label>Timeout (seconds)</label>
+                <input type="number" name="timeout_seconds" id="edit_timeout" min="0" value="1800">
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%;">Save Rules</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function editCourse(id, title, description, price) {
+    document.getElementById('edit_course_id').value = id;
+    document.getElementById('edit_course_title').value = title;
+    document.getElementById('edit_course_description').value = description;
+    document.getElementById('edit_course_price').value = price;
+    document.getElementById('editCourseModal').classList.add('active');
+}
+
+function editModuleRules(id, minWatch, mustQuiz, attempts, disableSeek, timeout) {
+    document.getElementById('edit_module_id').value = id;
+    document.getElementById('edit_min_watch').value = minWatch;
+    document.getElementById('edit_must_quiz').checked = mustQuiz;
+    document.getElementById('edit_attempts').value = attempts;
+    document.getElementById('edit_disable_seeking').checked = disableSeek;
+    document.getElementById('edit_timeout').value = timeout;
+    document.getElementById('editModuleModal').classList.add('active');
+}
+</script>
+
+{% endblock %}

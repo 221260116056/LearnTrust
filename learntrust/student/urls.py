@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/module-heatmap/<int:module_id>/", module_heatmap_api, name="api_module_heatmap"),
 
     # 👨‍🏫 TEACHER
+    path("teacher/dashboard/", views.teacher_dashboard, name="teacher_dashboard"),
     path("teacher/courses/", views.teacher_course_editor, name="teacher_courses"),
     path("teacher/course/<int:course_id>/", views.teacher_course_editor, name="teacher_course_editor"),
     path("teacher/course/<int:course_id>/analytics/", views.teacher_analytics, name="teacher_analytics"),

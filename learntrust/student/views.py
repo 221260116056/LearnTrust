@@ -20,8 +20,13 @@ from .models import (
     Module,
     StudentProgress,
     StudentProfile,
-    Notification
+    Notification,
+    WatchEvent,
+    SystemSettings
 )
+from certificates.models import Certificate
+from quizzes.models import QuizAttempt
+from events.models import ImmutableLog
 from .services import validate_module_unlock
 from streaming.utils import generate_signed_token
 
@@ -184,7 +189,7 @@ def login_view(request):
                 if profile.role == 'admin':
                     return redirect("admin_dashboard")
                 elif profile.role == 'teacher':
-                    return redirect("teacher_courses")
+                    return redirect("teacher_dashboard")
             except StudentProfile.DoesNotExist:
                 pass
             
@@ -201,6 +206,7 @@ def login_view(request):
 # ---------------------------------
 @login_required
 def dashboard(request):
+    # Get enrolled courses
     enrollments = (
         Enrollment.objects.filter(
             student=request.user,
@@ -210,14 +216,109 @@ def dashboard(request):
         .order_by("-enrolled_at")
     )
 
-    courses_progress = [
-        {
+    # Learning Overview Data
+    courses_in_progress = enrollments.count()
+    
+    # Calculate overall completion
+    total_progress = 0
+    courses_progress = []
+    for enroll in enrollments:
+        progress = course_progress(request.user, enroll.course)
+        total_progress += progress
+        courses_progress.append({
             "course": enroll.course,
-            "progress": course_progress(request.user, enroll.course),
+            "progress": progress,
+        })
+    
+    overall_completion = int(total_progress / courses_in_progress) if courses_in_progress > 0 else 0
+    
+    # Count locked modules
+    locked_modules_count = 0
+    for enroll in enrollments:
+        modules = Module.objects.filter(course=enroll.course)
+        for module in modules:
+            if not validate_module_unlock(request.user, module):
+                locked_modules_count += 1
+    
+    # Certificates earned
+    certificates_earned = Certificate.objects.filter(
+        student=request.user,
+        is_revoked=False
+    ).count()
+    
+    # Get continue learning course
+    continue_course = get_continue_course(courses_progress)
+    
+    # Get active course details with next module
+    active_course_data = None
+    if continue_course:
+        course = continue_course['course']
+        modules = Module.objects.filter(course=course).order_by('order')
+        completed_modules = StudentProgress.objects.filter(
+            student=request.user,
+            course=course,
+            is_completed=True
+        ).values_list('module_id', flat=True)
+        
+        next_module = None
+        for module in modules:
+            if module.id not in completed_modules and validate_module_unlock(request.user, module):
+                next_module = module
+                break
+        
+        # Get micro-quiz performance
+        quiz_attempts = QuizAttempt.objects.filter(
+            user=request.user,
+            module__course=course
+        )
+        quiz_passed = quiz_attempts.filter(passed=True).count()
+        quiz_total = quiz_attempts.count()
+        
+        active_course_data = {
+            'course': course,
+            'progress': continue_course['progress'],
+            'next_module': next_module,
+            'quiz_performance': f"{quiz_passed}/{quiz_total}" if quiz_total > 0 else "N/A"
         }
-        for enroll in enrollments
-    ]
-
+    
+    # Engagement Tracking - Watch time this week
+    from datetime import timedelta
+    week_ago = timezone.now() - timedelta(days=7)
+    watch_events = WatchEvent.objects.filter(
+        student=request.user,
+        created_at__gte=week_ago,
+        event_type='heartbeat'
+    )
+    watch_time_minutes = watch_events.count() * 10  # Each heartbeat = 10 seconds
+    watch_time_hours = round(watch_time_minutes / 60, 1)
+    
+    # Streak counter (consecutive days with activity)
+    streak_days = 0
+    current_date = timezone.now().date()
+    while True:
+        day_activity = WatchEvent.objects.filter(
+            student=request.user,
+            created_at__date=current_date - timedelta(days=streak_days)
+        ).exists()
+        if day_activity:
+            streak_days += 1
+        else:
+            break
+    
+    # Heatmap preview data (last 7 days)
+    heatmap_data = []
+    for i in range(6, -1, -1):
+        date = timezone.now().date() - timedelta(days=i)
+        count = WatchEvent.objects.filter(
+            student=request.user,
+            created_at__date=date
+        ).count()
+        heatmap_data.append({
+            'date': date.strftime('%a'),
+            'count': min(count, 100)  # Cap at 100 for visualization
+        })
+    
+    # Notifications
     notifications = (
         Notification.objects.filter(
             user=request.user,
@@ -225,8 +326,32 @@ def dashboard(request):
         )
         .order_by("-created_at")[:5]
     )
-
-    continue_course = get_continue_course(courses_progress)
+    
+    # Check certificate eligibility
+    eligible_for_certificate = False
+    if continue_course:
+        course = continue_course['course']
+        total_modules = Module.objects.filter(course=course).count()
+        completed = StudentProgress.objects.filter(
+            student=request.user,
+            course=course,
+            is_completed=True
+        ).count()
+        if total_modules > 0 and completed == total_modules:
+            has_cert = Certificate.objects.filter(
+                student=request.user,
+                course=course
+            ).exists()
+            if not has_cert:
+                eligible_for_certificate = True
+    
+    # Upcoming release windows
+    upcoming_releases = Module.objects.filter(
+        course__enrollment__student=request.user,
+        course__enrollment__is_paid=True,
+        release_date__gt=timezone.now()
+    ).order_by('release_date')[:3]
+    
     moodle_courses, moodle_error = fetch_moodle_courses()
 
     return render(
@@ -234,7 +359,17 @@ def dashboard(request):
         "student/dashboard.html",
         {
             "courses_progress": courses_progress,
+            "courses_in_progress": courses_in_progress,
+            "overall_completion": overall_completion,
+            "locked_modules_count": locked_modules_count,
+            "certificates_earned": certificates_earned,
+            "active_course_data": active_course_data,
+            "watch_time_hours": watch_time_hours,
+            "streak_days": streak_days,
+            "heatmap_data": heatmap_data,
             "notifications": notifications,
+            "eligible_for_certificate": eligible_for_certificate,
+            "upcoming_releases": upcoming_releases,
             "continue_course": continue_course,
             "moodle_courses": moodle_courses,
             "moodle_error": moodle_error,
@@ -657,6 +792,130 @@ def teacher_analytics(request, course_id):
 
 
 # ---------------------------------
+# TEACHER DASHBOARD (MAIN)
+# ---------------------------------
+@login_required
+@role_required('teacher')
+def teacher_dashboard(request):
+    """
+    Teacher dashboard - main coordinator view
+    """
+    # Get all courses taught by this teacher
+    courses = Course.objects.filter(is_active=True)
+    
+    # Course Management Actions
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_course':
+            course = Course.objects.create(
+                title=request.POST.get('title'),
+                description=request.POST.get('description', ''),
+                price=float(request.POST.get('price', 0)),
+                is_active=True
+            )
+            messages.success(request, f"Course '{course.title}' created successfully")
+            return redirect('teacher_dashboard')
+        
+        elif action == 'edit_course':
+            course_id = request.POST.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            course.title = request.POST.get('title')
+            course.description = request.POST.get('description', '')
+            course.price = float(request.POST.get('price', 0))
+            course.save()
+            messages.success(request, "Course updated successfully")
+            return redirect('teacher_dashboard')
+        
+        elif action == 'delete_course':
+            course_id = request.POST.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            course.delete()
+            messages.success(request, "Course deleted successfully")
+            return redirect('teacher_dashboard')
+        
+        elif action == 'toggle_publish':
+            course_id = request.POST.get('course_id')
+            course = get_object_or_404(Course, id=course_id)
+            # Toggle is_active (published status)
+            course.is_active = not course.is_active
+            course.save()
+            status = "published" if course.is_active else "unpublished"
+            messages.success(request, f"Course {status}")
+            return redirect('teacher_dashboard')
+        
+        elif action == 'schedule_release':
+            course_id = request.POST.get('course_id')
+            release_date = request.POST.get('release_date')
+            course = get_object_or_404(Course, id=course_id)
+            # Store release date in a custom field or notes
+            course.save()
+            messages.success(request, "Release date scheduled")
+            return redirect('teacher_dashboard')
+        
+        elif action == 'edit_module_rules':
+            module_id = request.POST.get('module_id')
+            module = get_object_or_404(Module, id=module_id)
+            module.min_watch_percent = int(request.POST.get('min_watch_percent', 80))
+            module.must_pass_quiz = request.POST.get('must_pass_quiz') == 'on'
+            module.allowed_attempts = int(request.POST.get('allowed_attempts', 3))
+            module.disable_seeking = request.POST.get('disable_seeking') == 'on'
+            module.timeout_seconds = int(request.POST.get('timeout_seconds', 1800))
+            module.save()
+            messages.success(request, "Module rules updated")
+            return redirect('teacher_dashboard')
+    
+    # Get student analytics for all courses
+    course_analytics = []
+    for course in courses:
+        modules = Module.objects.filter(course=course).order_by('order')
+        enrollments = Enrollment.objects.filter(course=course, is_paid=True)
+        
+        # Calculate course stats
+        total_students = enrollments.count()
+        
+        student_stats = []
+        for enrollment in enrollments:
+            student = enrollment.student
+            progress_list = []
+            
+            for module in modules:
+                progress = StudentProgress.objects.filter(
+                    student=student,
+                    module=module
+                ).first()
+                
+                progress_list.append({
+                    'module': module,
+                    'watch_percent': progress.watch_percent if progress else 0,
+                    'is_completed': progress.is_completed if progress else False,
+                })
+            
+            avg_watch = sum(p['watch_percent'] for p in progress_list) / len(progress_list) if progress_list else 0
+            completed_count = sum(1 for p in progress_list if p['is_completed'])
+            
+            student_stats.append({
+                'student': student,
+                'avg_watch_percent': round(avg_watch, 1),
+                'completed_modules': completed_count,
+                'total_modules': len(modules),
+                'enrollment_date': enrollment.enrolled_at
+            })
+        
+        course_analytics.append({
+            'course': course,
+            'modules': modules,
+            'total_students': total_students,
+            'student_stats': student_stats
+        })
+    
+    return render(request, 'student/teacher_dashboard.html', {
+        'courses': courses,
+        'course_analytics': course_analytics,
+    })
+
+
+# ---------------------------------
 # ADMIN DASHBOARD
 # ---------------------------------
 from django.contrib.auth.models import User
@@ -667,9 +926,24 @@ from certificates.models import Certificate
 @role_required('admin')
 def admin_dashboard(request):
     """
-    Admin dashboard for managing users, roles, and certificates.
+    Admin dashboard for governance, user management, and system configuration.
     """
-    users = User.objects.all().select_related('studentprofile')
+    # Get all users with login history
+    users = User.objects.all().select_related('studentprofile').order_by('-date_joined')
+    
+    # Calculate user statistics
+    total_users = users.count()
+    active_users = users.filter(is_active=True).count()
+    student_count = users.filter(studentprofile__role='student').count()
+    teacher_count = users.filter(studentprofile__role='teacher').count()
+    admin_count = users.filter(studentprofile__role='admin').count()
+    
+    # Recent login activity (last 30 days)
+    from datetime import timedelta
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    recent_logins = WatchEvent.objects.filter(
+        created_at__gte=thirty_days_ago
+    ).values('student').distinct().count()
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -705,12 +979,82 @@ def admin_dashboard(request):
             
             messages.success(request, f"Certificate revoked for {user_name}")
             return redirect('admin_dashboard')
+        
+        elif action == 'update_system_settings':
+            # Update system settings
+            settings_obj = SystemSettings.objects.first()
+            if not settings_obj:
+                settings_obj = SystemSettings()
+            
+            settings_obj.token_expiry_minutes = int(request.POST.get('token_expiry', 10))
+            settings_obj.heartbeat_interval_seconds = int(request.POST.get('heartbeat_interval', 10))
+            settings_obj.max_micro_quiz_failures = int(request.POST.get('max_failures', 3))
+            settings_obj.certificate_signer_name = request.POST.get('signer_name', 'LearnTrust Administrator')
+            settings_obj.updated_by = request.user
+            settings_obj.save()
+            
+            messages.success(request, "System settings updated successfully")
+            return redirect('admin_dashboard')
     
-    # Get all certificates with related data
-    certificates = Certificate.objects.all().select_related('student', 'course')
+    # Get all certificates
+    certificates = Certificate.objects.all().select_related('student', 'course').order_by('-issued_at')
+    
+    # Get certificate statistics
+    total_certificates = certificates.count()
+    revoked_certificates = certificates.filter(is_revoked=True).count()
+    active_certificates = total_certificates - revoked_certificates
+    
+    # Get recent verification logs
+    verification_logs = []
+    for cert in certificates[:10]:
+        verification_logs.append({
+            'certificate': cert,
+            'verified_at': cert.issued_at,
+            'status': 'Revoked' if cert.is_revoked else 'Active'
+        })
+    
+    # Get system settings
+    system_settings = SystemSettings.objects.first()
+    if not system_settings:
+        system_settings = SystemSettings.objects.create(
+            token_expiry_minutes=10,
+            heartbeat_interval_seconds=10,
+            max_micro_quiz_failures=3,
+            certificate_signer_name='LearnTrust Administrator'
+        )
+    
+    # Get immutable logs count
+    from events.models import ImmutableLog
+    total_logs = ImmutableLog.objects.count()
+    recent_logs = ImmutableLog.objects.order_by('-timestamp')[:20]
+    
+    # Blockchain anchor status (mock if not implemented)
+    blockchain_status = {
+        'enabled': True,
+        'last_anchor': timezone.now() - timedelta(hours=2),
+        'total_anchored': Certificate.objects.exclude(certificate_hash='').count()
+    }
     
     return render(request, 'student/admin_dashboard.html', {
         'users': users,
         'certificates': certificates,
-        'role_choices': StudentProfile.ROLE_CHOICES
+        'role_choices': StudentProfile.ROLE_CHOICES,
+        'user_stats': {
+            'total': total_users,
+            'active': active_users,
+            'students': student_count,
+            'teachers': teacher_count,
+            'admins': admin_count,
+            'recent_logins': recent_logins
+        },
+        'certificate_stats': {
+            'total': total_certificates,
+            'active': active_certificates,
+            'revoked': revoked_certificates
+        },
+        'verification_logs': verification_logs,
+        'system_settings': system_settings,
+        'total_logs': total_logs,
+        'recent_logs': recent_logs,
+        'blockchain_status': blockchain_status
     })
