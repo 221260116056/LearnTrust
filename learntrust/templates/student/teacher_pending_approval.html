@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnTrust | Teacher Registration Pending</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 60px 50px;
+            text-align: center;
+        }
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .status-value {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-badge.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .info-box p {
+            font-size: 14px;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        .rejection-reason {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fee2e2;
+            border-radius: 8px;
+            border-left: 4px solid #dc2626;
+        }
+        .rejection-reason p {
+            font-size: 14px;
+            color: #991b1b;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        
+        <h1>Registration Under Review</h1>
+        <p class="subtitle">
+            Your teacher registration request has been submitted and is awaiting admin approval.
+        </p>
+
+        <div class="status-card">
+            <div class="status-item">
+                <span class="status-label">Status</span>
+                <span class="status-badge {{ teacher_request.status }}">
+                    {{ teacher_request.get_status_display }}
+                </span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Requested At</span>
+                <span class="status-value">{{ teacher_request.requested_at|date:"F d, Y g:i A" }}</span>
+            </div>
+            {% if teacher_request.reviewed_at %}
+            <div class="status-item">
+                <span class="status-label">Reviewed At</span>
+                <span class="status-value">{{ teacher_request.reviewed_at|date:"F d, Y g:i A" }}</span>
+            </div>
+            {% endif %}
+            {% if teacher_request.reviewed_by %}
+            <div class="status-item">
+                <span class="status-label">Reviewed By</span>
+                <span class="status-value">{{ teacher_request.reviewed_by.get_full_name|default:teacher_request.reviewed_by.email }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if teacher_request.status == 'pending' %}
+        <div class="info-box">
+            <p>
+                <strong>⏳ Waiting for Approval</strong><br>
+                Your request is currently being reviewed by an administrator. You will receive a notification once your request has been processed. 
+                Please check back later or wait for an email notification.
+            </p>
+        </div>
+        {% elif teacher_request.status == 'approved' %}
+        <div class="info-box" style="background: #d1fae5; border-color: #10b981;">
+            <p style="color: #065f46;">
+                <strong>✅ Approved!</strong><br>
+                Your teacher registration has been approved. You can now access the teacher panel.
+            </p>
+        </div>
+        {% elif teacher_request.status == 'rejected' %}
+        <div class="info-box" style="background: #fee2e2; border-color: #dc2626;">
+            <p style="color: #991b1b;">
+                <strong>❌ Request Rejected</strong><br>
+                Your teacher registration request has been rejected. Please see the reason below.
+            </p>
+        </div>
+        {% if teacher_request.rejection_reason %}
+        <div class="rejection-reason">
+            <p><strong>Reason:</strong> {{ teacher_request.rejection_reason }}</p>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <div class="actions">
+            {% if teacher_request.status == 'approved' %}
+            <a href="{% url 'teacher_dashboard' %}" class="btn btn-primary">Go to Teacher Panel</a>
+            {% elif teacher_request.status == 'rejected' %}
+            <a href="{% url 'teacher_signup' %}" class="btn btn-primary">Submit New Request</a>
+            {% else %}
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Go to Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

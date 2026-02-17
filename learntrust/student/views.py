@@ -23,7 +23,8 @@ from .models import (
     StudentProfile,
     Notification,
     WatchEvent,
-    SystemSettings
+    SystemSettings,
+    TeacherRegistrationRequest
 )
 from certificates.models import Certificate
 from quizzes.models import QuizAttempt
@@ -169,51 +170,116 @@ def fetch_moodle_courses(limit: int = 12) -> Tuple[List[Dict[str, Any]], str | N
 
 
 # ---------------------------------
-# LOGIN (EMAIL BASED)
+# ROLE CHOOSE (LANDING: STUDENT OR TEACHER)
 # ---------------------------------
-def login_view(request):
-    if request.method == "POST":
-        email = request.POST.get("username")   # email entered in username field
-        password = request.POST.get("password")
+def role_choose(request):
+    """Landing page: user selects Student or Teacher, then goes to login/signup for that role. Admins must use /adminprivate/."""
+    if request.user.is_authenticated:
+        try:
+            profile = StudentProfile.objects.get(user=request.user)
+            if profile.role == 'admin':
+                return redirect("admin_dashboard")
+            if profile.role == 'teacher':
+                return redirect("teacher_dashboard")
+        except StudentProfile.DoesNotExist:
+            pass
+        return redirect("dashboard")
+    return render(request, "student/role_choose.html")
 
-        user = authenticate(
-            request,
-            username=email,
-            password=password
-        )
 
-        if user is not None:
-            login(request, user)
-            
-            # Sync user with Moodle
-            try:
-                from .moodle_api import sync_user_with_moodle
-                profile, created = StudentProfile.objects.get_or_create(user=user)
-                if not profile.moodle_user_id:
-                    moodle_user_id = sync_user_with_moodle(user)
-                    profile.moodle_user_id = moodle_user_id
-                    profile.save()
-            except Exception as e:
-                # Log error but don't block login
-                import logging
-                logging.getLogger(__name__).error(f"Moodle sync failed: {e}")
-            
-            # Check user role and redirect accordingly
-            try:
-                profile = StudentProfile.objects.get(user=user)
-                if profile.role == 'admin':
-                    return redirect("admin_dashboard")
-                elif profile.role == 'teacher':
-                    return redirect("teacher_dashboard")
-            except StudentProfile.DoesNotExist:
-                pass
-            
-            # Default redirect for students
-            return redirect("dashboard")
-
+# ---------------------------------
+# LOGIN (EMAIL BASED) — shared logic, role-based redirect
+# ---------------------------------
+def _login_post(request, allow_admin=False):
+    """
+    Handle POST for login; returns redirect on success, None otherwise.
+    allow_admin: If False, admin users will be rejected (must use adminprivate page).
+    """
+    email = request.POST.get("username")
+    password = request.POST.get("password")
+    user = authenticate(request, username=email, password=password)
+    if user is None:
         messages.error(request, "Invalid email or password")
+        return None
+    
+    # Check if user is admin BEFORE login
+    try:
+        profile = StudentProfile.objects.get(user=user)
+        if profile.role == 'admin' and not allow_admin:
+            messages.error(request, "Admin accounts must login through the admin portal.")
+            return None
+    except StudentProfile.DoesNotExist:
+        pass
+    
+    login(request, user)
+    try:
+        from .moodle_api import sync_user_with_moodle
+        profile, created = StudentProfile.objects.get_or_create(user=user)
+        if not profile.moodle_user_id:
+            moodle_user_id = sync_user_with_moodle(user)
+            profile.moodle_user_id = moodle_user_id
+            profile.save()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Moodle sync failed: {e}")
+    try:
+        profile = StudentProfile.objects.get(user=user)
+        if profile.role == 'admin':
+            return redirect("admin_dashboard")
+        if profile.role == 'teacher':
+            return redirect("teacher_dashboard")
+    except StudentProfile.DoesNotExist:
+        pass
+    return redirect("dashboard")
 
+
+def login_view(request):
+    """Legacy single login (uses student login template). Admins cannot login here."""
+    if request.method == "POST":
+        r = _login_post(request, allow_admin=False)
+        if r is not None:
+            return r
     return render(request, "student/login.html")
+
+
+def student_login_view(request):
+    """Student login page; after login redirects by profile (student → dashboard). Admins cannot login here."""
+    if request.method == "POST":
+        r = _login_post(request, allow_admin=False)
+        if r is not None:
+            return r
+    return render(request, "student/student_login.html")
+
+
+def teacher_login_view(request):
+    """Teacher login page; after login redirects by profile (teacher → teacher_dashboard). Admins cannot login here."""
+    if request.method == "POST":
+        r = _login_post(request, allow_admin=False)
+        if r is not None:
+            return r
+    return render(request, "student/teacher_login.html")
+
+
+# ---------------------------------
+# ADMIN PRIVATE LOGIN/SIGNUP (Only accessible via /adminprivate/)
+# ---------------------------------
+def admin_login_view(request):
+    """Admin login page - ONLY accessible via /adminprivate/ URL. No links in project."""
+    if request.user.is_authenticated:
+        try:
+            profile = StudentProfile.objects.get(user=request.user)
+            if profile.role == 'admin':
+                return redirect("admin_dashboard")
+        except StudentProfile.DoesNotExist:
+            pass
+    
+    if request.method == "POST":
+        r = _login_post(request, allow_admin=True)
+        if r is not None:
+            return r
+    return render(request, "student/admin_login.html")
+
+
 
 
 # ---------------------------------
@@ -779,34 +845,150 @@ def notifications(request):
 
 
 # ---------------------------------
-# SIGNUP (EMAIL BASED + AUTO LOGIN)
+# SIGNUP (EMAIL BASED + AUTO LOGIN) — role-aware
 # ---------------------------------
+def _signup_post(request, role='student'):
+    """Handle signup POST. role in ('student', 'teacher', 'admin'). Returns redirect on success, else None."""
+    email = (request.POST.get("email") or "").strip()
+    password = request.POST.get("password") or ""
+    password_confirm = request.POST.get("password_confirm") or ""
+    first_name = (request.POST.get("first_name") or "").strip()
+    last_name = (request.POST.get("last_name") or "").strip()
+
+    if not email:
+        messages.error(request, "Email is required.")
+        return None
+    if User.objects.filter(email=email).exists():
+        messages.error(request, "Email already registered.")
+        return None
+    if len(password) < 8:
+        messages.error(request, "Password must be at least 8 characters.")
+        return None
+    if password_confirm and password != password_confirm:
+        messages.error(request, "Passwords do not match.")
+        return None
+
+    user = User.objects.create_user(
+        username=email,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    profile, _ = StudentProfile.objects.get_or_create(user=user)
+    profile.role = role
+    profile.save()
+
+    login(request, user, backend="student.authentication.EmailBackend")
+
+    if role == 'admin':
+        return redirect("admin_dashboard")
+    if role == 'teacher':
+        return redirect("teacher_dashboard")
+    return redirect("dashboard")
+
+
 def signup(request):
+    """Legacy signup (student role, redirect dashboard)."""
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+        r = _signup_post(request, role='student')
+        if r is not None:
+            return r
+    return render(request, "student/signup.html")
 
+
+def student_signup_view(request):
+    """Student sign-up page; redirects to student dashboard after signup. Admin signups not allowed."""
+    if request.method == "POST":
+        r = _signup_post(request, role='student')
+        if r is not None:
+            return r
+    return render(request, "student/student_signup.html")
+
+
+def teacher_signup_view(request):
+    """Teacher sign-up page; creates registration request for admin approval."""
+    if request.method == "POST":
+        email = (request.POST.get("email") or "").strip()
+        password = request.POST.get("password") or ""
+        password_confirm = request.POST.get("password_confirm") or ""
+        first_name = (request.POST.get("first_name") or "").strip()
+        last_name = (request.POST.get("last_name") or "").strip()
+
+        if not email:
+            messages.error(request, "Email is required.")
+            return render(request, "student/teacher_signup.html")
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered")
-            return redirect("signup")
+            messages.error(request, "Email already registered.")
+            return render(request, "student/teacher_signup.html")
+        if len(password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, "student/teacher_signup.html")
+        if password_confirm and password != password_confirm:
+            messages.error(request, "Passwords do not match.")
+            return render(request, "student/teacher_signup.html")
 
+        # Create user account
         user = User.objects.create_user(
             username=email,
             email=email,
-            password=password
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
         )
+        
+        # Create profile with student role initially (will be changed to teacher on approval)
+        profile, _ = StudentProfile.objects.get_or_create(user=user)
+        profile.role = 'student'  # Keep as student until approved
+        profile.save()
 
-        StudentProfile.objects.get_or_create(user=user)
+        # Create teacher registration request
+        teacher_request = TeacherRegistrationRequest.objects.create(user=user)
+        
+        # Log to terminal
+        import sys
+        print("\n" + "="*80, file=sys.stderr)
+        print("🔔 NEW TEACHER REGISTRATION REQUEST", file=sys.stderr)
+        print("="*80, file=sys.stderr)
+        print(f"User: {user.get_full_name()} ({user.email})", file=sys.stderr)
+        print(f"Request ID: {teacher_request.id}", file=sys.stderr)
+        print(f"Requested at: {teacher_request.requested_at}", file=sys.stderr)
+        print(f"Status: {teacher_request.get_status_display()}", file=sys.stderr)
+        print("="*80 + "\n", file=sys.stderr)
 
-        login(
-            request,
-            user,
-            backend="student.authentication.EmailBackend"
-        )
+        # Auto login the user
+        login(request, user, backend="student.authentication.EmailBackend")
 
-        return redirect("dashboard")
+        # Redirect to pending approval page
+        messages.success(request, "Your teacher registration request has been submitted. Please wait for admin approval.")
+        return redirect("teacher_pending_approval")
+    
+    return render(request, "student/teacher_signup.html")
 
-    return render(request, "student/signup.html")
+
+# ---------------------------------
+# TEACHER PENDING APPROVAL PAGE
+# ---------------------------------
+@login_required
+def teacher_pending_approval(request):
+    """Show pending approval status for teachers waiting for admin approval."""
+    try:
+        teacher_request = TeacherRegistrationRequest.objects.get(user=request.user)
+        return render(request, "student/teacher_pending_approval.html", {
+            "teacher_request": teacher_request
+        })
+    except TeacherRegistrationRequest.DoesNotExist:
+        # Check if user is already approved teacher
+        try:
+            profile = StudentProfile.objects.get(user=request.user)
+            if profile.role == 'teacher':
+                # Already approved, redirect to dashboard
+                return redirect("teacher_dashboard")
+        except StudentProfile.DoesNotExist:
+            pass
+        # No request found, redirect to signup
+        messages.info(request, "Please register as a teacher first.")
+        return redirect("teacher_signup")
 
 
 # ---------------------------------
@@ -1282,6 +1464,46 @@ def admin_dashboard(request):
             
             messages.success(request, "System settings updated successfully")
             return redirect('admin_dashboard')
+        
+        elif action == 'approve_teacher_request':
+            request_id = request.POST.get('request_id')
+            teacher_request = get_object_or_404(TeacherRegistrationRequest, id=request_id)
+            teacher_request.approve(request.user)
+            
+            # Log to terminal
+            import sys
+            print("\n" + "="*80, file=sys.stderr)
+            print("✅ TEACHER REGISTRATION APPROVED", file=sys.stderr)
+            print("="*80, file=sys.stderr)
+            print(f"User: {teacher_request.user.get_full_name()} ({teacher_request.user.email})", file=sys.stderr)
+            print(f"Request ID: {teacher_request.id}", file=sys.stderr)
+            print(f"Approved by: {request.user.get_full_name()} ({request.user.email})", file=sys.stderr)
+            print(f"Approved at: {teacher_request.reviewed_at}", file=sys.stderr)
+            print("="*80 + "\n", file=sys.stderr)
+            
+            messages.success(request, f"Teacher registration approved for {teacher_request.user.email}")
+            return redirect('admin_dashboard')
+        
+        elif action == 'reject_teacher_request':
+            request_id = request.POST.get('request_id')
+            rejection_reason = request.POST.get('rejection_reason', '')
+            teacher_request = get_object_or_404(TeacherRegistrationRequest, id=request_id)
+            teacher_request.reject(request.user, rejection_reason)
+            
+            # Log to terminal
+            import sys
+            print("\n" + "="*80, file=sys.stderr)
+            print("❌ TEACHER REGISTRATION REJECTED", file=sys.stderr)
+            print("="*80, file=sys.stderr)
+            print(f"User: {teacher_request.user.get_full_name()} ({teacher_request.user.email})", file=sys.stderr)
+            print(f"Request ID: {teacher_request.id}", file=sys.stderr)
+            print(f"Rejected by: {request.user.get_full_name()} ({request.user.email})", file=sys.stderr)
+            print(f"Reason: {rejection_reason if rejection_reason else 'No reason provided'}", file=sys.stderr)
+            print(f"Rejected at: {teacher_request.reviewed_at}", file=sys.stderr)
+            print("="*80 + "\n", file=sys.stderr)
+            
+            messages.success(request, f"Teacher registration rejected for {teacher_request.user.email}")
+            return redirect('admin_dashboard')
     
     # Get all certificates
     certificates = Certificate.objects.all().select_related('student', 'course').order_by('-issued_at')
@@ -1322,10 +1544,18 @@ def admin_dashboard(request):
         'total_anchored': Certificate.objects.exclude(certificate_hash='').count()
     }
     
+    # Get pending teacher registration requests
+    pending_teacher_requests = TeacherRegistrationRequest.objects.filter(
+        status='pending'
+    ).select_related('user').order_by('-requested_at')
+    pending_teacher_user_ids = [req.user_id for req in pending_teacher_requests]
+    
     return render(request, 'student/admin_dashboard.html', {
         'users': users,
         'certificates': certificates,
         'role_choices': StudentProfile.ROLE_CHOICES,
+        'pending_teacher_requests': pending_teacher_requests,
+        'pending_teacher_user_ids': pending_teacher_user_ids,
         'user_stats': {
             'total': total_users,
             'active': active_users,

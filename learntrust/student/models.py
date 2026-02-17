@@ -203,3 +203,61 @@ class SystemSettings(models.Model):
 
     def __str__(self):
         return f"System Settings (Updated: {self.updated_at})"
+
+
+# ---------------------------------
+# 9️⃣ Teacher Registration Request
+# ---------------------------------
+class TeacherRegistrationRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher_request')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_teacher_requests')
+    rejection_reason = models.TextField(blank=True, help_text='Reason for rejection if applicable')
+
+    class Meta:
+        ordering = ['-requested_at']
+        verbose_name = 'Teacher Registration Request'
+        verbose_name_plural = 'Teacher Registration Requests'
+
+    def __str__(self):
+        return f"{self.user.email} - {self.status}"
+
+    def approve(self, reviewed_by_user):
+        """Approve the teacher registration request."""
+        self.status = 'approved'
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = reviewed_by_user
+        self.save()
+        
+        # Update user profile to teacher role
+        profile, _ = StudentProfile.objects.get_or_create(user=self.user)
+        profile.role = 'teacher'
+        profile.save()
+        
+        # Create notification for the teacher
+        Notification.objects.create(
+            user=self.user,
+            message="Your teacher registration has been approved! You can now access the teacher panel."
+        )
+
+    def reject(self, reviewed_by_user, reason=''):
+        """Reject the teacher registration request."""
+        self.status = 'rejected'
+        self.reviewed_at = timezone.now()
+        self.reviewed_by = reviewed_by_user
+        self.rejection_reason = reason
+        self.save()
+        
+        # Create notification for the teacher
+        Notification.objects.create(
+            user=self.user,
+            message=f"Your teacher registration request has been rejected. Reason: {reason if reason else 'No reason provided'}"
+        )

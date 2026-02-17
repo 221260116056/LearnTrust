@@ -514,6 +514,11 @@
                                 <span class="role-badge {{ user.studentprofile.role|default:'student' }}">
                                     {{ user.studentprofile.role|default:'student'|title }}
                                 </span>
+                                {% if user.id in pending_teacher_user_ids %}
+                                <div style="margin-top: 4px; font-size: 11px; color: #92400e;">
+                                    Pending teacher approval
+                                </div>
+                                {% endif %}
                             </td>
                             <td>
                                 <span class="status {% if user.is_active %}active{% else %}inactive{% endif %}">
@@ -628,6 +633,61 @@
 
         <!-- Right Column -->
         <div class="right-column">
+            <!-- Teacher Registration Requests -->
+            {% if pending_teacher_requests %}
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Teacher Registration Requests</div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Email</th>
+                            <th>Requested At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pending_teacher_requests %}
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">
+                                    {{ req.user.get_full_name|default:req.user.username }}
+                                </div>
+                            </td>
+                            <td style="font-size: 13px; color: #6b7280;">
+                                {{ req.user.email }}
+                            </td>
+                            <td style="font-size: 13px; color: #6b7280;">
+                                {{ req.requested_at|date:"M d, Y g:i A" }}
+                            </td>
+                            <td>
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve_teacher_request">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        Approve
+                                    </button>
+                                </form>
+                                <form method="post" style="display: inline; margin-left: 8px;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject_teacher_request">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="rejection_reason" value="Rejected by admin">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Reject
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
             <!-- System Configuration -->
             <div class="panel">
                 <div class="panel-header">

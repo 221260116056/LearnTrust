@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnTrust | Student Sign Up</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .signup-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+        .left-side {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .brand-icon {
+            width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand-text { font-size: 28px; font-weight: 700; }
+        .welcome-text { font-size: 32px; font-weight: 700; margin-bottom: 20px; line-height: 1.2; }
+        .welcome-subtitle { font-size: 16px; opacity: 0.9; line-height: 1.6; }
+        .right-side {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .form-header { margin-bottom: 24px; }
+        .form-header h2 { font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+        .form-header p { color: #6b7280; font-size: 14px; }
+        .role-pill {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #ede9fe;
+            color: #5b21b6;
+            margin-bottom: 16px;
+        }
+        .form-row { display: flex; gap: 16px; }
+        .form-row .form-group { flex: 1; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #374151; }
+        .form-group label .required { color: #dc2626; }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+        .form-group input:focus { outline: none; border-color: #667eea; background: white; }
+        .form-group input::placeholder { color: #9ca3af; }
+        .btn-signup {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+        .btn-signup:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+        .divider { margin: 30px 0; text-align: center; position: relative; }
+        .divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e5e7eb; }
+        .divider span { background: white; padding: 0 15px; color: #6b7280; font-size: 14px; position: relative; }
+        .login-link { text-align: center; font-size: 15px; color: #6b7280; }
+        .login-link a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .login-link a:hover { text-decoration: underline; }
+        .switch-role { margin-top: 16px; text-align: center; font-size: 13px; color: #9ca3af; }
+        .switch-role a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .switch-role a:hover { text-decoration: underline; }
+        .messages { margin-bottom: 20px; }
+        .message { padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
+        .message.error { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .message.success { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+        @media (max-width: 768px) {
+            .signup-container { flex-direction: column; }
+            .form-row { flex-direction: column; gap: 0; }
+            .left-side, .right-side { padding: 40px 30px; }
+            .welcome-text { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="left-side">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 5.5C4 4.12 5.12 3 6.5 3H19V17.5C19 18.88 17.88 20 16.5 20H5V5.5Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="M5 6H17.5C18.88 6 20 7.12 20 8.5V19" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <span class="brand-text">LearnTrust</span>
+            </div>
+            <h1 class="welcome-text">Join as Student</h1>
+            <p class="welcome-subtitle">
+                Create a student account to access courses, track progress, and earn certificates.
+            </p>
+        </div>
+        <div class="right-side">
+            <span class="role-pill">Student</span>
+            <div class="form-header">
+                <h2>Create Account</h2>
+                <p>Fill in your details to get started</p>
+            </div>
+
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'student_signup' %}">
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first_name" name="first_name" placeholder="Enter first name" autocomplete="given-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last_name" name="last_name" placeholder="Enter last name" autocomplete="family-name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="Enter email address" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Create Password <span class="required">*</span></label>
+                    <input type="password" id="password" name="password" placeholder="Enter password" required autocomplete="new-password" minlength="8">
+                </div>
+                <div class="form-group">
+                    <label for="password_confirm">Confirm Password <span class="required">*</span></label>
+                    <input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm password" required autocomplete="new-password" minlength="8">
+                </div>
+                <button type="submit" class="btn-signup">Create Account</button>
+            </form>
+
+            <div class="divider"><span>OR</span></div>
+            <div class="login-link">
+                Already have an account? <a href="{% url 'student_login' %}">Sign in as Student</a>
+            </div>
+            <div class="switch-role">
+                Are you an instructor? <a href="{% url 'teacher_signup' %}">Sign up as Instructor</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

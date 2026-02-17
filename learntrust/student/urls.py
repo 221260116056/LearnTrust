@@ -11,10 +11,22 @@ from .api_views import (
 
 urlpatterns = [
 
-    # 🔐 AUTH
-    path("", views.login_view, name="login"),
+    # 🔐 AUTH — role-based (4 pages: student login/signup, teacher login/signup)
+    path("", views.role_choose, name="role_choose"),
+    path("student/login/", views.student_login_view, name="student_login"),
+    path("student/signup/", views.student_signup_view, name="student_signup"),
+    path("teacher/login/", views.teacher_login_view, name="teacher_login"),
+    path("teacher/signup/", views.teacher_signup_view, name="teacher_signup"),
+    # Legacy aliases (redirect from role_choose or keep for bookmarks)
+    path("login/", views.login_view, name="login"),
     path("signup/", views.signup, name="signup"),
     path("logout/", views.logout_view, name="logout"),
+    
+    # 🔒 ADMIN PRIVATE AUTH (NO LINKS IN PROJECT - users must type /adminprivate/ manually)
+    path("adminprivate/", views.admin_login_view, name="admin_login"),
+    
+    # 👨‍🏫 TEACHER PENDING APPROVAL
+    path("teacher/pending/", views.teacher_pending_approval, name="teacher_pending_approval"),
 
     # 🏠 DASHBOARD
     path("dashboard/", views.dashboard, name="dashboard"),

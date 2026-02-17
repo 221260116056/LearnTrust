@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -32,20 +33,13 @@ urlpatterns = [
     # 🔧 DJANGO ADMIN
     path('admin/', admin.site.urls),
 
-    # 🔐 Login (Django built-in)
-    path(
-        'login/',
-        views.login_view if hasattr(views, 'login_view') else
-        __import__('django.contrib.auth.views').contrib.auth.views.LoginView.as_view(
-            template_name='student/login.html'
-        ),
-        name='login'
-    ),
+    # 🔐 Auth: send /login/ to role-choose (student urls provide student/login, teacher/login, etc.)
+    path('login/', RedirectView.as_view(url='/', permanent=False), name='login'),
 
     # 🔓 Logout (CUSTOM LOGOUT VIEW)
     path('logout/', views.logout_view, name='logout'),
 
-    # 🎓 Student panel
+    # 🎓 Student panel (includes role_choose at "", student/login, teacher/login, signup, dashboard, etc.)
     path('', include('student.urls')),
     
     # 📜 Certificate verification
