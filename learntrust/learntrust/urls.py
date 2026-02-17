@@ -56,6 +56,9 @@ urlpatterns = [
     
     # 📊 Events/Logs
     path('', include('events.urls')),
+    
+    # 🎥 Streaming/HLS
+    path('', include('streaming.urls')),
 ]
 
 # 🎥 MEDIA FILES (VERY IMPORTANT)

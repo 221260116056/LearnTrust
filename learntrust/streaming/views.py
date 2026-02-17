@@ -72,7 +72,93 @@ def stream_video(request, module_id):
     if not validate_token(token, request.user.id, module_id):
         return HttpResponseForbidden("Invalid or expired token")
     
-    # Serve video file
-    video_path = settings.MEDIA_ROOT / 'sample.mp4'
+    # Check if HLS files exist
+    hls_dir = settings.MEDIA_ROOT / 'hls' / str(module_id)
+    master_playlist = hls_dir / 'master.m3u8'
     
-    return FileResponse(open(video_path, 'rb'), content_type='video/mp4')
+    if master_playlist.exists():
+        # Serve HLS master playlist
+        return FileResponse(
+            open(master_playlist, 'rb'),
+            content_type='application/vnd.apple.mpegurl'
+        )
+    else:
+        # Fallback to regular video file
+        video_path = settings.MEDIA_ROOT / 'sample.mp4'
+        return FileResponse(open(video_path, 'rb'), content_type='video/mp4')
+
+
+def stream_hls_segment(request, module_id, filename):
+    """
+    Serve HLS segment files (.ts) with token validation
+    """
+    token = request.GET.get('token')
+    
+    if not token:
+        return HttpResponseForbidden("Missing authentication token")
+    
+    if not validate_token(token, request.user.id, module_id):
+        return HttpResponseForbidden("Invalid or expired token")
+    
+    # Serve segment file
+    segment_path = settings.MEDIA_ROOT / 'hls' / str(module_id) / filename
+    
+    if not segment_path.exists():
+        return HttpResponseForbidden("Segment not found")
+    
+    return FileResponse(
+        open(segment_path, 'rb'),
+        content_type='video/mp2t'
+    )
+
+
+def stream_hls_playlist(request, module_id, resolution):
+    """
+    Serve HLS variant playlist files with token validation
+    """
+    token = request.GET.get('token')
+    
+    if not token:
+        return HttpResponseForbidden("Missing authentication token")
+    
+    if not validate_token(token, request.user.id, module_id):
+        return HttpResponseForbidden("Invalid or expired token")
+    
+    playlist_path = settings.MEDIA_ROOT / 'hls' / str(module_id) / f'{resolution}.m3u8'
+    
+    if not playlist_path.exists():
+        return HttpResponseForbidden("Playlist not found")
+    
+    return FileResponse(
+        open(playlist_path, 'rb'),
+        content_type='application/vnd.apple.mpegurl'
+    )
+
+
+def stream_encryption_key(request, module_id):
+    """
+    Serve AES-128 encryption key with token authentication
+    This endpoint is called by hls.js/player to decrypt segments
+    """
+    token = request.GET.get('token')
+    
+    if not token:
+        return HttpResponseForbidden("Missing authentication token")
+    
+    if not validate_token(token, request.user.id, module_id):
+        return HttpResponseForbidden("Invalid or expired token")
+    
+    # Serve the encryption key
+    key_path = settings.MEDIA_ROOT / 'hls' / str(module_id) / 'encryption.key'
+    
+    if not key_path.exists():
+        return HttpResponseForbidden("Encryption key not found")
+    
+    response = FileResponse(
+        open(key_path, 'rb'),
+        content_type='application/octet-stream'
+    )
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    
+    return response

@@ -132,6 +132,7 @@ class WatchEvent(models.Model):
         ('pause', 'Pause'),
         ('heartbeat', 'Heartbeat'),
         ('checkpoint', 'Checkpoint'),
+        ('webcam_snapshot', 'Webcam Snapshot'),
     ]
 
     student = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
@@ -140,6 +141,7 @@ class WatchEvent(models.Model):
     event_type = models.CharField(max_length=20, choices=EVENT_TYPE_CHOICES, default='play')
     sequence_number = models.IntegerField(default=0)
     token_hash = models.CharField(max_length=128, default='')
+    metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
