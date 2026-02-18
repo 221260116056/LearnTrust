@@ -47,6 +47,7 @@ class Course(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
     is_active = models.BooleanField(default=True)
+    moodle_course_id = models.IntegerField(null=True, blank=True, help_text="Moodle course ID for API integration")
 
     def __str__(self):
         return self.title

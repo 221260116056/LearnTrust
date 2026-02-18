@@ -89,6 +89,34 @@ def create_moodle_user(user):
         raise MoodleAPIError("User creation failed: Empty response")
 
 
+def create_moodle_course(course):
+    """
+    Create a course in Moodle corresponding to local Course instance.
+
+    Args:
+        course: Django Course instance
+
+    Returns:
+        int: Moodle course ID
+    """
+    # Build sensible defaults for Moodle course fields
+    shortname = getattr(course, 'title', 'course').strip().replace(' ', '_')[:50]
+    params = {
+        "courses[0][fullname]": course.title,
+        "courses[0][shortname]": shortname,
+        "courses[0][categoryid]": getattr(settings, 'MOODLE_DEFAULT_CATEGORY_ID', 1),
+        "courses[0][visible]": 1,
+        "courses[0][summary]": course.description or '',
+    }
+
+    response = _make_moodle_request("core_course_create_courses", params)
+
+    if response and len(response) > 0:
+        return response[0].get('id')
+    else:
+        raise MoodleAPIError("Course creation failed: Empty response")
+
+
 def get_moodle_user(email):
     """
     Get Moodle user by email

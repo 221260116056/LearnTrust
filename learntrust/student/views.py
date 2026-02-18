@@ -1254,6 +1254,17 @@ def teacher_dashboard(request):
                 price=float(request.POST.get('price', 0)),
                 is_active=True
             )
+            # Try to create corresponding course in Moodle and store its ID
+            try:
+                from .moodle_api import create_moodle_course
+                moodle_id = create_moodle_course(course)
+                if moodle_id:
+                    course.moodle_course_id = moodle_id
+                    course.save()
+            except Exception as e:
+                # Log/debug could be added; inform teacher but keep local course
+                messages.warning(request, f"Created local course but Moodle sync failed: {str(e)}")
+
             messages.success(request, f"Course '{course.title}' created successfully")
             return redirect('teacher_dashboard')
         
