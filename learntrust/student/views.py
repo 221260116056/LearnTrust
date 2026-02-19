@@ -1038,6 +1038,19 @@ def teacher_course_editor(request, course_id=None):
             messages.success(request, f"Course '{course_title}' has been deleted.")
             return redirect('teacher_courses')
         
+        elif action == 'edit_course':
+            course_id = request.POST.get('course_id')
+            course_obj = get_object_or_404(Course, id=course_id)
+            
+            course_obj.title = request.POST.get('title')
+            course_obj.description = request.POST.get('description', '')
+            course_obj.price = request.POST.get('price', 0)
+            course_obj.is_active = request.POST.get('is_active') == 'on'
+            course_obj.save()
+            
+            messages.success(request, f"Course '{course_obj.title}' has been updated.")
+            return redirect('teacher_courses')
+        
         elif action == 'add_module':
             course_id = request.POST.get('course_id')
             course_obj = get_object_or_404(Course, id=course_id)

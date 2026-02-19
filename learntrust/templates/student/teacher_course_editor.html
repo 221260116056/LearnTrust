@@ -612,7 +612,12 @@
         <!-- Course List -->
         <div class="course-list">
             {% for c in courses %}
-            <div class="course-item">
+            <div class="course-item"
+                 data-course-id="{{ c.id }}"
+                 data-title="{{ c.title|escape }}"
+                 data-description="{{ c.description|default:''|escape }}"
+                 data-price="{{ c.price }}"
+                 data-is-active="{{ c.is_active|yesno:'true,false' }}">
                 <div class="course-header">
                     <div>
                         <div class="course-title">{{ c.title }}</div>
@@ -632,9 +637,9 @@
                             {% if c.is_active %}Unpublish{% else %}Publish{% endif %}
                         </button>
                     </form>
-                    <a href="{% url 'teacher_courses' %}?course_id={{ c.id }}" class="btn-edit">
+                    <button onclick="editCourse({{ c.id }})" class="btn-edit">
                         Edit
-                    </a>
+                    </button>
                     <a href="{% url 'teacher_course_editor' c.id %}" class="btn-edit" style="background: #8b5cf6;">
                         Modules
                     </a>
@@ -686,10 +691,70 @@
             <p style="color: #6b7280; text-align: center; padding: 40px;">No courses created yet. <a href="{% url 'teacher_dashboard' %}" style="color: #667eea;">Create your first course!</a></p>
             {% endfor %}
         </div>
+        
+        <!-- Edit Course Modal -->
+        <div id="editCourseModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Course</h3>
+                    <button class="close-btn" onclick="document.getElementById('editCourseModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_course">
+                    <input type="hidden" name="course_id" id="edit_course_id">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" id="edit_course_title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" id="edit_course_description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Price:</label>
+                        <input type="number" name="price" id="edit_course_price" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" name="is_active" id="edit_course_is_active"> Published
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('editCourseModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     {% endif %}
 </div>
 
 <script>
+function editCourse(courseId) {
+    // Find the course item with the matching data
+    const courseItem = document.querySelector(`[data-course-id="${courseId}"]`);
+    if (!courseItem) {
+        alert('Course not found');
+        return;
+    }
+    
+    // Populate the edit modal with course data
+    document.getElementById('edit_course_id').value = courseId;
+    document.getElementById('edit_course_title').value = courseItem.dataset.title;
+    document.getElementById('edit_course_description').value = courseItem.dataset.description;
+    document.getElementById('edit_course_price').value = courseItem.dataset.price;
+    document.getElementById('edit_course_is_active').checked = courseItem.dataset.isActive === 'true';
+    
+    // Show the edit modal
+    document.getElementById('editCourseModal').classList.add('active');
+}
+
 function editModule(moduleId) {
     // Find the module card with the matching data
     const moduleCard = document.querySelector(`[data-module-id="${moduleId}"]`);
