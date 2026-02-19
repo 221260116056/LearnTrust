@@ -1106,7 +1106,7 @@ def teacher_course_editor(request, course_id=None):
             messages.success(request, "Modules reordered successfully")
             return redirect('teacher_course_editor', course_id=course_id)
     
-    courses = Course.objects.filter(is_active=True).prefetch_related('modules')
+    courses = Course.objects.filter(is_active=True)
     
     # Add enrollment count and modules to each course
     for c in courses:
