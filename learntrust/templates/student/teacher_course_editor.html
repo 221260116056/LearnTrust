@@ -397,7 +397,18 @@
         <div class="module-editor">
             {% if modules %}
                 {% for module in modules %}
-                <div class="module-card">
+                <div class="module-card" 
+                     data-module-id="{{ module.id }}"
+                     data-title="{{ module.title|escape }}"
+                     data-description="{{ module.description|default:''|escape }}"
+                     data-video-url="{{ module.video_url|default:'' }}"
+                     data-min-watch="{{ module.min_watch_percent }}"
+                     data-must-pass-quiz="{{ module.must_pass_quiz|yesno:'true,false' }}"
+                     data-allowed-attempts="{{ module.allowed_attempts }}"
+                     data-disable-seeking="{{ module.disable_seeking|yesno:'true,false' }}"
+                     data-required-replays="{{ module.required_replays }}"
+                     data-is-published="{{ module.is_published|yesno:'true,false' }}"
+                     data-release-date="{{ module.release_date|date:'Y-m-d\TH:i'|default:'' }}">
                     <div class="module-header">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span class="module-order">#{{ module.order }}</span>
@@ -510,6 +521,83 @@
             </div>
         </div>
         
+        <!-- Edit Module Modal -->
+        <div id="editModuleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Module</h3>
+                    <button class="close-btn" onclick="document.getElementById('editModuleModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_module">
+                    <input type="hidden" name="module_id" id="edit_module_id">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" id="edit_title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" id="edit_description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Video URL:</label>
+                        <input type="url" name="video_url" id="edit_video_url">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Min Watch %:</label>
+                            <input type="number" name="min_watch_percent" id="edit_min_watch_percent" min="0" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allowed Attempts:</label>
+                            <input type="number" name="allowed_attempts" id="edit_allowed_attempts" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Required Replays:</label>
+                            <input type="number" name="required_replays" id="edit_required_replays" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="must_pass_quiz" id="edit_must_pass_quiz"> Must Pass Quiz
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="disable_seeking" id="edit_disable_seeking"> Disable Seeking
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="is_published" id="edit_is_published"> Published
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Release Date:</label>
+                        <input type="datetime-local" name="release_date" id="edit_release_date">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('editModuleModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Module</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
     {% else %}
         <!-- Course List View -->
         <h1>Course Editor</h1>
@@ -603,8 +691,28 @@
 
 <script>
 function editModule(moduleId) {
-    // Simple edit functionality - can be expanded with a modal
-    alert('Edit module ' + moduleId + ' - This will open an edit form in a future update.');
+    // Find the module card with the matching data
+    const moduleCard = document.querySelector(`[data-module-id="${moduleId}"]`);
+    if (!moduleCard) {
+        alert('Module not found');
+        return;
+    }
+    
+    // Populate the edit modal with module data
+    document.getElementById('edit_module_id').value = moduleId;
+    document.getElementById('edit_title').value = moduleCard.dataset.title;
+    document.getElementById('edit_description').value = moduleCard.dataset.description;
+    document.getElementById('edit_video_url').value = moduleCard.dataset.videoUrl;
+    document.getElementById('edit_min_watch_percent').value = moduleCard.dataset.minWatch;
+    document.getElementById('edit_allowed_attempts').value = moduleCard.dataset.allowedAttempts;
+    document.getElementById('edit_required_replays').value = moduleCard.dataset.requiredReplays;
+    document.getElementById('edit_must_pass_quiz').checked = moduleCard.dataset.mustPassQuiz === 'true';
+    document.getElementById('edit_disable_seeking').checked = moduleCard.dataset.disableSeeking === 'true';
+    document.getElementById('edit_is_published').checked = moduleCard.dataset.isPublished === 'true';
+    document.getElementById('edit_release_date').value = moduleCard.dataset.releaseDate;
+    
+    // Show the edit modal
+    document.getElementById('editModuleModal').classList.add('active');
 }
 </script>
 {% endblock %}
