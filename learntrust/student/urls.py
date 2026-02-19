@@ -55,6 +55,7 @@ urlpatterns = [
     path("teacher/dashboard/", views.teacher_dashboard, name="teacher_dashboard"),
     path("teacher/courses/", views.teacher_course_editor, name="teacher_courses"),
     path("teacher/course/<int:course_id>/", views.teacher_course_editor, name="teacher_course_editor"),
+    path("teacher/my-courses/", views.teacher_my_courses_analytics, name="teacher_my_courses"),
     path("teacher/course/<int:course_id>/analytics/", views.teacher_analytics, name="teacher_analytics"),
     path("teacher/logs/", views.teacher_logs, name="teacher_logs"),
     path("teacher/certificates/", views.teacher_certificates, name="teacher_certificates"),

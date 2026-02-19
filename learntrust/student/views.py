@@ -1138,9 +1138,56 @@ def teacher_course_editor(request, course_id=None):
 # ---------------------------------
 @login_required
 @role_required('teacher')
+def teacher_my_courses_analytics(request):
+    """
+    Teacher My Courses & Analytics overview page.
+    Shows all courses with enrollment stats and quick analytics.
+    """
+    courses = Course.objects.filter(is_active=True)
+    
+    # Add analytics data to each course
+    course_data = []
+    for course in courses:
+        enrollment_count = Enrollment.objects.filter(course=course).count()
+        modules = Module.objects.filter(course=course)
+        module_count = modules.count()
+        
+        # Get overall course stats
+        total_students = enrollment_count
+        completed_students = 0
+        
+        if total_students > 0:
+            for enrollment in Enrollment.objects.filter(course=course):
+                student = enrollment.student
+                # Check if student completed all modules
+                completed_modules = StudentProgress.objects.filter(
+                    student=student,
+                    module__course=course,
+                    is_completed=True
+                ).count()
+                if completed_modules >= module_count and module_count > 0:
+                    completed_students += 1
+        
+        completion_rate = (completed_students / total_students * 100) if total_students > 0 else 0
+        
+        course_data.append({
+            'course': course,
+            'enrollment_count': enrollment_count,
+            'module_count': module_count,
+            'completed_students': completed_students,
+            'completion_rate': completion_rate
+        })
+    
+    return render(request, 'student/teacher_my_courses.html', {
+        'course_data': course_data
+    })
+
+
+@login_required
+@role_required('teacher')
 def teacher_analytics(request, course_id):
     """
-    Teacher analytics dashboard showing student progress.
+    Teacher analytics dashboard showing student progress for a specific course.
     """
     course = get_object_or_404(Course, id=course_id)
     modules = Module.objects.filter(course=course).order_by('order')
