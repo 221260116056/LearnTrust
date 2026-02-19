@@ -1022,7 +1022,23 @@ def teacher_course_editor(request, course_id=None):
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == 'add_module':
+        if action == 'toggle_publish':
+            course_id = request.POST.get('course_id')
+            course_obj = get_object_or_404(Course, id=course_id)
+            course_obj.is_active = not course_obj.is_active
+            course_obj.save()
+            messages.success(request, f"Course '{course_obj.title}' has been {'published' if course_obj.is_active else 'unpublished'}.")
+            return redirect('teacher_courses')
+        
+        elif action == 'delete_course':
+            course_id = request.POST.get('course_id')
+            course_obj = get_object_or_404(Course, id=course_id)
+            course_title = course_obj.title
+            course_obj.delete()
+            messages.success(request, f"Course '{course_title}' has been deleted.")
+            return redirect('teacher_courses')
+        
+        elif action == 'add_module':
             course_id = request.POST.get('course_id')
             course_obj = get_object_or_404(Course, id=course_id)
             
@@ -1090,7 +1106,12 @@ def teacher_course_editor(request, course_id=None):
             messages.success(request, "Modules reordered successfully")
             return redirect('teacher_course_editor', course_id=course_id)
     
-    courses = Course.objects.filter(is_active=True)
+    courses = Course.objects.filter(is_active=True).prefetch_related('modules')
+    
+    # Add enrollment count and modules to each course
+    for c in courses:
+        c.enrollment_count = Enrollment.objects.filter(course=c).count()
+        c.modules = Module.objects.filter(course=c).order_by('order')
     
     return render(request, 'student/teacher_course_editor.html', {
         'course': course,
