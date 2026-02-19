@@ -1,0 +1,165 @@
+{% extends 'public_base.html' %}
+
+{% block title %}Courses - LearnTrust{% endblock %}
+
+{% block content %}
+<style>
+    .courses-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 60px 20px;
+        text-align: center;
+    }
+    
+    .courses-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 15px;
+    }
+    
+    .courses-header p {
+        font-size: 1.125rem;
+        color: #6b7280;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .courses-section {
+        padding: 60px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+    
+    .course-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s;
+    }
+    
+    .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .course-image {
+        height: 180px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+    }
+    
+    .course-content {
+        padding: 24px;
+    }
+    
+    .course-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 10px;
+    }
+    
+    .course-content p {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 15px;
+    }
+    
+    .course-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .course-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #2563eb;
+    }
+    
+    .btn-view-course {
+        display: block;
+        background: #2563eb;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .btn-view-course:hover {
+        background: #1d4ed8;
+    }
+    
+    .no-courses {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+    
+    .no-courses h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #374151;
+    }
+</style>
+
+<!-- Header -->
+<section class="courses-header">
+    <h1>📚 Explore Our Courses</h1>
+    <p>Choose from a variety of professional courses designed to help you learn smarter, improve skills, and earn certificates.</p>
+</section>
+
+<!-- Courses Grid -->
+<section class="courses-section">
+    <div class="courses-grid">
+        {% for course in courses %}
+        <div class="course-card">
+            <div class="course-image">
+                {% if course.id|divisibleby:4 %}
+                    💻
+                {% elif course.id|divisibleby:3 %}
+                    🤖
+                {% elif course.id|divisibleby:2 %}
+                    🌐
+                {% else %}
+                    📊
+                {% endif %}
+            </div>
+            <div class="course-content">
+                <h3>{{ course.title }}</h3>
+                <p>{{ course.description|truncatewords:20 }}</p>
+                <div class="course-meta">
+                    <span>{{ course.module_count }} modules</span>
+                    <span>{{ course.enrollment_count }} students</span>
+                </div>
+                <div class="course-price">${{ course.price }}</div>
+                <a href="{% url 'role_choose' %}" class="btn-view-course">View Course</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-courses" style="grid-column: 1 / -1;">
+            <h3>No courses available yet</h3>
+            <p>Check back soon for new courses!</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
