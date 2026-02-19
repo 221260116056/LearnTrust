@@ -1854,3 +1854,64 @@ def admin_compliance_audit(request):
         'event_types': event_types,
         'blockchain_status': blockchain_status
     })
+
+
+# ---------------------------------
+# PUBLIC PAGES (Before Login)
+# ---------------------------------
+
+def public_home(request):
+    """
+    Public homepage - shown to visitors before login
+    """
+    # Get stats for display
+    total_students = User.objects.filter(studentprofile__role='student').count()
+    total_courses = Course.objects.filter(is_active=True).count()
+    total_teachers = User.objects.filter(studentprofile__role='teacher').count()
+    
+    return render(request, 'student/public_home.html', {
+        'total_students': total_students,
+        'total_courses': total_courses,
+        'total_teachers': total_teachers,
+    })
+
+
+def public_courses(request):
+    """
+    Public courses page - shown to visitors before login
+    """
+    courses = Course.objects.filter(is_active=True)
+    
+    # Add enrollment count to each course
+    for course in courses:
+        course.enrollment_count = Enrollment.objects.filter(course=course).count()
+        course.module_count = Module.objects.filter(course=course).count()
+    
+    return render(request, 'student/public_courses.html', {
+        'courses': courses
+    })
+
+
+def public_about(request):
+    """
+    Public about page - shown to visitors before login
+    """
+    return render(request, 'student/public_about.html', {})
+
+
+def public_contact(request):
+    """
+    Public contact page - shown to visitors before login
+    """
+    if request.method == 'POST':
+        # Handle contact form submission
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        
+        # Here you would typically send an email or save to database
+        # For now, just show a success message
+        messages.success(request, f"Thank you {name}! Your message has been received. We'll contact you at {email} soon.")
+        return redirect('public_contact')
+    
+    return render(request, 'student/public_contact.html', {})

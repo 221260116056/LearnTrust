@@ -62,4 +62,10 @@ urlpatterns = [
     path("teacher/settings/", views.teacher_settings, name="teacher_settings"),
 
     path('test-api/', views.test_api, name='test_api'),
+    
+    # 🌐 PUBLIC PAGES (Before Login)
+    path('home/', views.public_home, name='public_home'),
+    path('courses-public/', views.public_courses, name='public_courses'),
+    path('about/', views.public_about, name='public_about'),
+    path('contact/', views.public_contact, name='public_contact'),
 ]
