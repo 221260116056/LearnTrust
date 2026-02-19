@@ -205,68 +205,115 @@
     cursor: pointer;
 }
 
-.module-rules {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
-}
-
-.module-rules-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 12px;
-}
-
-.module-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.module-item {
-    background: white;
-    border: 1px solid #e5e7eb;
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    padding: 10px 20px;
     border-radius: 8px;
-    padding: 12px;
-}
-
-.module-name {
+    text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin-bottom: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
 }
 
-.module-rules-grid {
+.module-editor {
+    margin-top: 20px;
+}
+
+.module-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.module-order {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.module-details {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    font-size: 14px;
+}
+
+.module-details p {
+    margin: 0;
+}
+
+.module-actions-inline {
+    display: flex;
     gap: 8px;
 }
 
-.rule-item {
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.checkbox-group {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: #f3f4f6;
-    border-radius: 6px;
-    font-size: 12px;
+    gap: 8px;
 }
 
-.rule-label {
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+
+.student-count {
+    font-size: 13px;
     color: #6b7280;
+    margin-top: 4px;
 }
 
-.rule-value {
-    font-weight: 600;
-    color: #1a1a2e;
+.back-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: inline-block;
 }
 
-.btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 500;
+.back-link:hover {
+    text-decoration: underline;
 }
 
 .modal {
@@ -316,158 +363,248 @@
     color: #6b7280;
 }
 
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 6px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-}
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.checkbox-group input[type="checkbox"] {
-    width: auto;
-}
-
-.student-count {
-    font-size: 13px;
+.empty-modules {
+    text-align: center;
+    padding: 40px;
     color: #6b7280;
-    margin-top: 4px;
 }
 
-.btn-edit-rules {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    margin-top: 8px;
+.empty-modules p {
+    margin-bottom: 20px;
 }
 </style>
 
 <div class="teacher-editor">
-    <h1>Course Editor</h1>
-    <p style="color: #6b7280; margin-bottom: 24px;">Select a course to edit modules and content.</p>
-    
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px;">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-    
-    <!-- Course List -->
-    <div class="course-list">
-        {% for c in courses %}
-        <div class="course-item">
-            <div class="course-header">
-                <div>
-                    <div class="course-title">{{ c.title }}</div>
-                    <div class="student-count">{{ c.enrollment_count }} students enrolled</div>
-                </div>
-                <span class="course-status {% if c.is_active %}published{% else %}unpublished{% endif %}">
-                    {% if c.is_active %}Published{% else %}Unpublished{% endif %}
-                </span>
-            </div>
-
-            <div class="course-actions">
-                <form method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="toggle_publish">
-                    <input type="hidden" name="course_id" value="{{ c.id }}">
-                    <button type="submit" class="btn-toggle {% if not c.is_active %}unpublished{% endif %}">
-                        {% if c.is_active %}Unpublish{% else %}Publish{% endif %}
-                    </button>
-                </form>
-                <a href="{% url 'teacher_courses' %}?course_id={{ c.id }}" class="btn-edit">
-                    Edit
-                </a>
-                <a href="{% url 'teacher_course_editor' c.id %}" class="btn-edit" style="background: #8b5cf6;">
-                    Modules
-                </a>
-                <form method="post" style="display: inline;" onsubmit="return confirm('Delete this course?')">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete_course">
-                    <input type="hidden" name="course_id" value="{{ c.id }}">
-                    <button type="submit" class="btn-delete">Delete</button>
-                </form>
-            </div>
-
-            <!-- Module Rules Section -->
-            {% if c.modules %}
-            <div class="module-rules">
-                <div class="module-rules-title">Module Enforcement Rules</div>
-                <div class="module-list">
-                    {% for module in c.modules %}
-                    <div class="module-item">
-                        <div class="module-name">{{ module.title }}</div>
-                        <div class="module-rules-grid">
-                            <div class="rule-item">
-                                <span class="rule-label">Min Watch:</span>
-                                <span class="rule-value">{{ module.min_watch_percent }}%</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-label">Quiz Required:</span>
-                                <span class="rule-value">{% if module.must_pass_quiz %}Yes{% else %}No{% endif %}</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-label">Attempts:</span>
-                                <span class="rule-value">{{ module.allowed_attempts }}</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-label">Seeking:</span>
-                                <span class="rule-value">{% if module.disable_seeking %}Disabled{% else %}Enabled{% endif %}</span>
-                            </div>
-                            <div class="rule-item">
-                                <span class="rule-label">Timeout:</span>
-                                <span class="rule-value">{{ module.timeout_seconds }}s</span>
-                            </div>
+    {% if course %}
+        <!-- Module Editor for Selected Course -->
+        <a href="{% url 'teacher_courses' %}" class="back-link">&larr; Back to Courses</a>
+        <h1>{{ course.title }} - Modules</h1>
+        <p style="color: #6b7280; margin-bottom: 24px;">Manage modules and content for this course.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <div style="margin-bottom: 20px;">
+            <button class="btn-primary" onclick="document.getElementById('addModuleModal').classList.add('active')">
+                + Add Module
+            </button>
+        </div>
+        
+        <!-- Modules List -->
+        <div class="module-editor">
+            {% if modules %}
+                {% for module in modules %}
+                <div class="module-card">
+                    <div class="module-header">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="module-order">#{{ module.order }}</span>
+                            <h4 style="margin: 0;">{{ module.title }}</h4>
                         </div>
-                        <button class="btn-edit-rules" onclick="editModuleRules({{ module.id }}, {{ module.min_watch_percent }}, {% if module.must_pass_quiz %}true{% else %}false{% endif %}, {{ module.allowed_attempts }}, {% if module.disable_seeking %}true{% else %}false{% endif %}, {{ module.timeout_seconds }})">
-                            Edit Rules
-                        </button>
+                        <div class="module-actions-inline">
+                            <button onclick="editModule({{ module.id }})" class="btn-edit">Edit</button>
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_module">
+                                <input type="hidden" name="module_id" value="{{ module.id }}">
+                                <button type="submit" class="btn-delete" onclick="return confirm('Delete this module?')">Delete</button>
+                            </form>
+                        </div>
                     </div>
-                    {% endfor %}
+                    <div class="module-details">
+                        <p><strong>Min Watch:</strong> {{ module.min_watch_percent }}%</p>
+                        <p><strong>Quiz Required:</strong> {{ module.must_pass_quiz|yesno:"Yes,No" }}</p>
+                        <p><strong>Attempts:</strong> {{ module.allowed_attempts }}</p>
+                        <p><strong>Seeking:</strong> {{ module.disable_seeking|yesno:"Disabled,Enabled" }}</p>
+                        <p><strong>Replays:</strong> {{ module.required_replays }}</p>
+                        <p><strong>Published:</strong> {{ module.is_published|yesno:"Yes,No" }}</p>
+                    </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-modules">
+                    <p>No modules yet. Add your first module to get started!</p>
+                    <button class="btn-primary" onclick="document.getElementById('addModuleModal').classList.add('active')">
+                        + Add First Module
+                    </button>
+                </div>
             {% endif %}
         </div>
-        {% empty %}
-        <p style="color: #6b7280; text-align: center; padding: 40px;">No courses created yet. <a href="{% url 'teacher_dashboard' %}" style="color: #667eea;">Create your first course!</a></p>
-        {% endfor %}
-    </div>
+        
+        <!-- Add Module Modal -->
+        <div id="addModuleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Add New Module</h3>
+                    <button class="close-btn" onclick="document.getElementById('addModuleModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_module">
+                    <input type="hidden" name="course_id" value="{{ course.id }}">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Video URL:</label>
+                        <input type="url" name="video_url">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Min Watch %:</label>
+                            <input type="number" name="min_watch_percent" value="80" min="0" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allowed Attempts:</label>
+                            <input type="number" name="allowed_attempts" value="3" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Required Replays:</label>
+                            <input type="number" name="required_replays" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="must_pass_quiz"> Must Pass Quiz
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="disable_seeking"> Disable Seeking
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="is_published" checked> Published
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Release Date:</label>
+                        <input type="datetime-local" name="release_date">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('addModuleModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Module</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Course List View -->
+        <h1>Course Editor</h1>
+        <p style="color: #6b7280; margin-bottom: 24px;">Select a course to edit modules and content.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Course List -->
+        <div class="course-list">
+            {% for c in courses %}
+            <div class="course-item">
+                <div class="course-header">
+                    <div>
+                        <div class="course-title">{{ c.title }}</div>
+                        <div class="student-count">{{ c.enrollment_count }} students enrolled</div>
+                    </div>
+                    <span class="course-status {% if c.is_active %}published{% else %}unpublished{% endif %}">
+                        {% if c.is_active %}Published{% else %}Unpublished{% endif %}
+                    </span>
+                </div>
+
+                <div class="course-actions">
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_publish">
+                        <input type="hidden" name="course_id" value="{{ c.id }}">
+                        <button type="submit" class="btn-toggle {% if not c.is_active %}unpublished{% endif %}">
+                            {% if c.is_active %}Unpublish{% else %}Publish{% endif %}
+                        </button>
+                    </form>
+                    <a href="{% url 'teacher_courses' %}?course_id={{ c.id }}" class="btn-edit">
+                        Edit
+                    </a>
+                    <a href="{% url 'teacher_course_editor' c.id %}" class="btn-edit" style="background: #8b5cf6;">
+                        Modules
+                    </a>
+                    <form method="post" style="display: inline;" onsubmit="return confirm('Delete this course?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_course">
+                        <input type="hidden" name="course_id" value="{{ c.id }}">
+                        <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                </div>
+
+                <!-- Module Rules Section -->
+                {% if c.modules %}
+                <div class="module-rules" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <div style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Module Enforcement Rules</div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for module in c.modules %}
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+                            <div style="font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px;">{{ module.title }}</div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Min Watch:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.min_watch_percent }}%</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Quiz Required:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{% if module.must_pass_quiz %}Yes{% else %}No{% endif %}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Attempts:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.allowed_attempts }}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Seeking:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{% if module.disable_seeking %}Disabled{% else %}Enabled{% endif %}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Timeout:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.timeout_seconds }}s</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p style="color: #6b7280; text-align: center; padding: 40px;">No courses created yet. <a href="{% url 'teacher_dashboard' %}" style="color: #667eea;">Create your first course!</a></p>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 
 <script>
-function editModuleRules(moduleId, minWatch, mustPassQuiz, allowedAttempts, disableSeeking, timeoutSeconds) {
-    alert('Edit Module Rules:\nModule ID: ' + moduleId + '\nMin Watch: ' + minWatch + '%\nQuiz Required: ' + mustPassQuiz + '\nAttempts: ' + allowedAttempts + '\nSeeking: ' + (disableSeeking ? 'Disabled' : 'Enabled') + '\nTimeout: ' + timeoutSeconds + 's');
+function editModule(moduleId) {
+    // Simple edit functionality - can be expanded with a modal
+    alert('Edit module ' + moduleId + ' - This will open an edit form in a future update.');
 }
 </script>
 {% endblock %}
