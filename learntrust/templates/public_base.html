@@ -170,16 +170,16 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{% url 'home' %}" class="logo">
+            <a href="{% url 'public_home' %}" class="logo">
                 <div class="logo-icon">LT</div>
                 LearnTrust
             </a>
             
             <div class="nav-links">
-                <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
-                <a href="{% url 'courses_list' %}" class="{% if request.resolver_match.url_name == 'courses_list' %}active{% endif %}">Courses</a>
-                <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}">About</a>
-                <a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+                <a href="{% url 'public_home' %}" class="{% if request.resolver_match.url_name == 'public_home' %}active{% endif %}">Home</a>
+                <a href="{% url 'public_courses' %}" class="{% if request.resolver_match.url_name == 'public_courses' %}active{% endif %}">Courses</a>
+                <a href="{% url 'public_about' %}" class="{% if request.resolver_match.url_name == 'public_about' %}active{% endif %}">About</a>
+                <a href="{% url 'public_contact' %}" class="{% if request.resolver_match.url_name == 'public_contact' %}active{% endif %}">Contact</a>
                 <a href="{% url 'role_choose' %}" class="btn-login">Login</a>
             </div>
         </div>
@@ -199,10 +199,10 @@
             </div>
             <div class="footer-section">
                 <h3>Quick Links</h3>
-                <a href="{% url 'home' %}">Home</a>
-                <a href="{% url 'courses_list' %}">Courses</a>
-                <a href="{% url 'about' %}">About</a>
-                <a href="{% url 'contact' %}">Contact</a>
+                <a href="{% url 'public_home' %}">Home</a>
+                <a href="{% url 'public_courses' %}">Courses</a>
+                <a href="{% url 'public_about' %}">About</a>
+                <a href="{% url 'public_contact' %}">Contact</a>
             </div>
             <div class="footer-section">
                 <h3>Resources</h3>

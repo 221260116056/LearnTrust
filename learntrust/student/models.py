@@ -77,6 +77,8 @@ class Module(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     video_url = models.URLField(blank=True)
+    video_file = models.FileField(upload_to='videos/%Y/%m/%d/', blank=True, null=True)
+    hls_path = models.CharField(max_length=500, blank=True, null=True)
     order = models.IntegerField()
     min_watch_percent = models.IntegerField(default=80)
     must_pass_quiz = models.BooleanField(default=False)
