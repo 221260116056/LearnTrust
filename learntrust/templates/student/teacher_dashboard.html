@@ -19,8 +19,8 @@
                 <span class="menu-label">Teacher Dashboard</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'teacher_courses' %}active{% endif %}">
-            <a href="{% url 'teacher_dashboard' %}">
+        <li class="{% if request.resolver_match.url_name == 'teacher_courses' or request.resolver_match.url_name == 'teacher_course_editor' %}active{% endif %}">
+            <a href="{% url 'teacher_courses' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 9L12 5L20 9L12 13L4 9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
@@ -30,7 +30,7 @@
                 <span class="menu-label">Course Editor</span>
             </a>
         </li>
-        <li class="{% if request.resolver_match.url_name == 'teacher_courses' or request.resolver_match.url_name == 'teacher_analytics' %}active{% endif %}">
+        <li class="{% if request.resolver_match.url_name == 'teacher_analytics' %}active{% endif %}">
             <a href="{% url 'teacher_courses' %}">
                 <span class="menu-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
