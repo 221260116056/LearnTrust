@@ -11,8 +11,11 @@ from .api_views import (
 
 urlpatterns = [
 
+    # 🌐 PUBLIC HOME PAGE (Landing page for first-time visitors)
+    path("", views.public_home, name="public_home"),
+    
     # 🔐 AUTH — role-based (4 pages: student login/signup, teacher login/signup)
-    path("", views.role_choose, name="role_choose"),
+    path("role-choose/", views.role_choose, name="role_choose"),
     path("student/login/", views.student_login_view, name="student_login"),
     path("student/signup/", views.student_signup_view, name="student_signup"),
     path("teacher/login/", views.teacher_login_view, name="teacher_login"),
