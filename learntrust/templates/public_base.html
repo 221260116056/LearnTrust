@@ -91,18 +91,34 @@
         }
         
         .btn-login {
-            background: #2563eb;
-            color: white;
-            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            padding: 10px 28px;
             border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
+            text-decoration: none !important;
+            font-weight: 600;
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+            letter-spacing: 0.3px;
         }
         
         .btn-login:hover {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46a1 100%);
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            color: white !important;
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
         
         /* Main Content */
