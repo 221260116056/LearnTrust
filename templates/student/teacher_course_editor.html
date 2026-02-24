@@ -1,0 +1,783 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block search_placeholder %}Search courses, students...{% endblock %}
+
+{% block sidebar_nav %}
+<nav class="sidebar-nav">
+    <ul class="menu">
+        <li class="{% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">
+            <a href="{% url 'teacher_dashboard' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="14" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="4" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                        <rect x="14" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </span>
+                <span class="menu-label">Teacher Dashboard</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'teacher_courses' or request.resolver_match.url_name == 'teacher_course_editor' %}active{% endif %}">
+            <a href="{% url 'teacher_courses' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 9L12 5L20 9L12 13L4 9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M7 11.5V15.5C7 17.433 9.686 19 12 19C14.314 19 17 17.433 17 15.5V11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="menu-label">Course Editor</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'teacher_my_courses' %}active{% endif %}">
+            <a href="{% url 'teacher_my_courses' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 19V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M12 19V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M18 19V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="menu-label">My Courses & Analytics</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'teacher_certificates' %}active{% endif %}">
+            <a href="{% url 'teacher_certificates' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M8 14L6 23L12 20L18 23L16 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="menu-label">Certificates</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'teacher_logs' %}active{% endif %}">
+            <a href="{% url 'teacher_logs' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 15V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="menu-label">Export Logs</span>
+            </a>
+        </li>
+        <li class="{% if request.resolver_match.url_name == 'teacher_logs' %}active{% endif %}">
+            <a href="{% url 'teacher_logs' %}">
+                <span class="menu-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="menu-label">Audit Logs</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endblock %}
+
+{% block content %}
+<style>
+.teacher-editor {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.teacher-editor h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.course-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.course-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fafafa;
+    transition: all 0.2s;
+}
+
+.course-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.course-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 4px;
+}
+
+.course-status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.course-status.published {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.course-status.unpublished {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.course-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.btn-toggle {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.btn-toggle.unpublished {
+    background: #6b7280;
+}
+
+.btn-edit {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.module-editor {
+    margin-top: 20px;
+}
+
+.module-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.module-order {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.module-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    font-size: 14px;
+}
+
+.module-details p {
+    margin: 0;
+}
+
+.module-actions-inline {
+    display: flex;
+    gap: 8px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+
+.student-count {
+    font-size: 13px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.back-link {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.empty-modules {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+}
+
+.empty-modules p {
+    margin-bottom: 20px;
+}
+</style>
+
+<div class="teacher-editor">
+    {% if course %}
+        <!-- Module Editor for Selected Course -->
+        <a href="{% url 'teacher_courses' %}" class="back-link">&larr; Back to Courses</a>
+        <h1>{{ course.title }} - Modules</h1>
+        <p style="color: #6b7280; margin-bottom: 24px;">Manage modules and content for this course.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <div style="margin-bottom: 20px;">
+            <button class="btn-primary" onclick="document.getElementById('addModuleModal').classList.add('active')">
+                + Add Module
+            </button>
+        </div>
+        
+        <!-- Modules List -->
+        <div class="module-editor">
+            {% if modules %}
+                {% for module in modules %}
+                <div class="module-card" 
+                     data-module-id="{{ module.id }}"
+                     data-title="{{ module.title|escape }}"
+                     data-description="{{ module.description|default:''|escape }}"
+                     data-video-url="{{ module.video_url|default:'' }}"
+                     data-min-watch="{{ module.min_watch_percent }}"
+                     data-must-pass-quiz="{{ module.must_pass_quiz|yesno:'true,false' }}"
+                     data-allowed-attempts="{{ module.allowed_attempts }}"
+                     data-disable-seeking="{{ module.disable_seeking|yesno:'true,false' }}"
+                     data-required-replays="{{ module.required_replays }}"
+                     data-is-published="{{ module.is_published|yesno:'true,false' }}"
+                     data-release-date="{{ module.release_date|date:'Y-m-d\TH:i'|default:'' }}">
+                    <div class="module-header">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="module-order">#{{ module.order }}</span>
+                            <h4 style="margin: 0;">{{ module.title }}</h4>
+                        </div>
+                        <div class="module-actions-inline">
+                            <button onclick="editModule({{ module.id }})" class="btn-edit">Edit</button>
+                            <form method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_module">
+                                <input type="hidden" name="module_id" value="{{ module.id }}">
+                                <button type="submit" class="btn-delete" onclick="return confirm('Delete this module?')">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="module-details">
+                        <p><strong>Min Watch:</strong> {{ module.min_watch_percent }}%</p>
+                        <p><strong>Quiz Required:</strong> {{ module.must_pass_quiz|yesno:"Yes,No" }}</p>
+                        <p><strong>Attempts:</strong> {{ module.allowed_attempts }}</p>
+                        <p><strong>Seeking:</strong> {{ module.disable_seeking|yesno:"Disabled,Enabled" }}</p>
+                        <p><strong>Replays:</strong> {{ module.required_replays }}</p>
+                        <p><strong>Published:</strong> {{ module.is_published|yesno:"Yes,No" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-modules">
+                    <p>No modules yet. Add your first module to get started!</p>
+                    <button class="btn-primary" onclick="document.getElementById('addModuleModal').classList.add('active')">
+                        + Add First Module
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Add Module Modal -->
+        <div id="addModuleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Add New Module</h3>
+                    <button class="close-btn" onclick="document.getElementById('addModuleModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_module">
+                    <input type="hidden" name="course_id" value="{{ course.id }}">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Video URL:</label>
+                        <input type="url" name="video_url">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Min Watch %:</label>
+                            <input type="number" name="min_watch_percent" value="80" min="0" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allowed Attempts:</label>
+                            <input type="number" name="allowed_attempts" value="3" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Required Replays:</label>
+                            <input type="number" name="required_replays" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="must_pass_quiz"> Must Pass Quiz
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="disable_seeking"> Disable Seeking
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="is_published" checked> Published
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Release Date:</label>
+                        <input type="datetime-local" name="release_date">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('addModuleModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Module</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Edit Module Modal -->
+        <div id="editModuleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Module</h3>
+                    <button class="close-btn" onclick="document.getElementById('editModuleModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_module">
+                    <input type="hidden" name="module_id" id="edit_module_id">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" id="edit_title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" id="edit_description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Video URL:</label>
+                        <input type="url" name="video_url" id="edit_video_url">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Min Watch %:</label>
+                            <input type="number" name="min_watch_percent" id="edit_min_watch_percent" min="0" max="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allowed Attempts:</label>
+                            <input type="number" name="allowed_attempts" id="edit_allowed_attempts" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Required Replays:</label>
+                            <input type="number" name="required_replays" id="edit_required_replays" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="must_pass_quiz" id="edit_must_pass_quiz"> Must Pass Quiz
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="disable_seeking" id="edit_disable_seeking"> Disable Seeking
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-group">
+                                <input type="checkbox" name="is_published" id="edit_is_published"> Published
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Release Date:</label>
+                        <input type="datetime-local" name="release_date" id="edit_release_date">
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('editModuleModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Module</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    {% else %}
+        <!-- Course List View -->
+        <h1>Course Editor</h1>
+        <p style="color: #6b7280; margin-bottom: 24px;">Select a course to edit modules and content.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px;">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Course List -->
+        <div class="course-list">
+            {% for c in courses %}
+            <div class="course-item"
+                 data-course-id="{{ c.id }}"
+                 data-title="{{ c.title|escape }}"
+                 data-description="{{ c.description|default:''|escape }}"
+                 data-price="{{ c.price }}"
+                 data-is-active="{{ c.is_active|yesno:'true,false' }}">
+                <div class="course-header">
+                    <div>
+                        <div class="course-title">{{ c.title }}</div>
+                        <div class="student-count">{{ c.enrollment_count }} students enrolled</div>
+                    </div>
+                    <span class="course-status {% if c.is_active %}published{% else %}unpublished{% endif %}">
+                        {% if c.is_active %}Published{% else %}Unpublished{% endif %}
+                    </span>
+                </div>
+
+                <div class="course-actions">
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_publish">
+                        <input type="hidden" name="course_id" value="{{ c.id }}">
+                        <button type="submit" class="btn-toggle {% if not c.is_active %}unpublished{% endif %}">
+                            {% if c.is_active %}Unpublish{% else %}Publish{% endif %}
+                        </button>
+                    </form>
+                    <button onclick="editCourse({{ c.id }})" class="btn-edit">
+                        Edit
+                    </button>
+                    <a href="{% url 'teacher_course_editor' c.id %}" class="btn-edit" style="background: #8b5cf6;">
+                        Modules
+                    </a>
+                    <form method="post" style="display: inline;" onsubmit="return confirm('Delete this course?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_course">
+                        <input type="hidden" name="course_id" value="{{ c.id }}">
+                        <button type="submit" class="btn-delete">Delete</button>
+                    </form>
+                </div>
+
+                <!-- Module Rules Section -->
+                {% if c.modules %}
+                <div class="module-rules" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <div style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">Module Enforcement Rules</div>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for module in c.modules %}
+                        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px;">
+                            <div style="font-size: 14px; font-weight: 600; color: #1a1a2e; margin-bottom: 8px;">{{ module.title }}</div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Min Watch:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.min_watch_percent }}%</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Quiz Required:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{% if module.must_pass_quiz %}Yes{% else %}No{% endif %}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Attempts:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.allowed_attempts }}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Seeking:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{% if module.disable_seeking %}Disabled{% else %}Enabled{% endif %}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #f3f4f6; border-radius: 6px; font-size: 12px;">
+                                    <span style="color: #6b7280;">Timeout:</span>
+                                    <span style="font-weight: 600; color: #1a1a2e;">{{ module.timeout_seconds }}s</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <p style="color: #6b7280; text-align: center; padding: 40px;">No courses created yet. <a href="{% url 'teacher_dashboard' %}" style="color: #667eea;">Create your first course!</a></p>
+            {% endfor %}
+        </div>
+        
+        <!-- Edit Course Modal -->
+        <div id="editCourseModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Course</h3>
+                    <button class="close-btn" onclick="document.getElementById('editCourseModal').classList.remove('active')">&times;</button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_course">
+                    <input type="hidden" name="course_id" id="edit_course_id">
+                    
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" name="title" id="edit_course_title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description:</label>
+                        <textarea name="description" id="edit_course_description" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Price:</label>
+                        <input type="number" name="price" id="edit_course_price" step="0.01" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" name="is_active" id="edit_course_is_active"> Published
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('editCourseModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-primary">Update Course</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function editCourse(courseId) {
+    // Find the course item with the matching data
+    const courseItem = document.querySelector(`[data-course-id="${courseId}"]`);
+    if (!courseItem) {
+        alert('Course not found');
+        return;
+    }
+    
+    // Populate the edit modal with course data
+    document.getElementById('edit_course_id').value = courseId;
+    document.getElementById('edit_course_title').value = courseItem.dataset.title;
+    document.getElementById('edit_course_description').value = courseItem.dataset.description;
+    document.getElementById('edit_course_price').value = courseItem.dataset.price;
+    document.getElementById('edit_course_is_active').checked = courseItem.dataset.isActive === 'true';
+    
+    // Show the edit modal
+    document.getElementById('editCourseModal').classList.add('active');
+}
+
+function editModule(moduleId) {
+    // Find the module card with the matching data
+    const moduleCard = document.querySelector(`[data-module-id="${moduleId}"]`);
+    if (!moduleCard) {
+        alert('Module not found');
+        return;
+    }
+    
+    // Populate the edit modal with module data
+    document.getElementById('edit_module_id').value = moduleId;
+    document.getElementById('edit_title').value = moduleCard.dataset.title;
+    document.getElementById('edit_description').value = moduleCard.dataset.description;
+    document.getElementById('edit_video_url').value = moduleCard.dataset.videoUrl;
+    document.getElementById('edit_min_watch_percent').value = moduleCard.dataset.minWatch;
+    document.getElementById('edit_allowed_attempts').value = moduleCard.dataset.allowedAttempts;
+    document.getElementById('edit_required_replays').value = moduleCard.dataset.requiredReplays;
+    document.getElementById('edit_must_pass_quiz').checked = moduleCard.dataset.mustPassQuiz === 'true';
+    document.getElementById('edit_disable_seeking').checked = moduleCard.dataset.disableSeeking === 'true';
+    document.getElementById('edit_is_published').checked = moduleCard.dataset.isPublished === 'true';
+    document.getElementById('edit_release_date').value = moduleCard.dataset.releaseDate;
+    
+    // Show the edit modal
+    document.getElementById('editModuleModal').classList.add('active');
+}
+</script>
+{% endblock %}

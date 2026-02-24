@@ -1,0 +1,255 @@
+{% extends 'public_base.html' %}
+
+{% block title %}About Us - LearnTrust{% endblock %}
+
+{% block content %}
+<style>
+    .about-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 80px 20px;
+        text-align: center;
+    }
+    
+    .about-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 20px;
+    }
+    
+    .about-header p {
+        font-size: 1.25rem;
+        color: #6b7280;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    .stats-section {
+        padding: 60px 20px;
+        background: white;
+    }
+    
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+    }
+    
+    .stat-card h3 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2563eb;
+        margin-bottom: 10px;
+    }
+    
+    .stat-card p {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+    
+    .mission-section {
+        padding: 80px 20px;
+        background: #f8fafc;
+    }
+    
+    .mission-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+    }
+    
+    .mission-content h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .mission-content p {
+        color: #4b5563;
+        line-height: 1.8;
+        margin-bottom: 15px;
+    }
+    
+    .mission-image {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .team-section {
+        padding: 80px 20px;
+        background: white;
+    }
+    
+    .team-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    
+    .team-header h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 15px;
+    }
+    
+    .team-header p {
+        color: #6b7280;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .team-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
+    
+    .team-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s;
+    }
+    
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .team-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+    }
+    
+    .team-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 5px;
+    }
+    
+    .team-card p {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+    
+    @media (max-width: 768px) {
+        .mission-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .about-header h1 {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<!-- Header -->
+<section class="about-header">
+    <h1>About LearnTrust</h1>
+    <p>LearnTrust is a modern platform built to transform the way students learn, teachers teach, and institutions manage education with secure, adaptive learning technology.</p>
+</section>
+
+<!-- Stats -->
+<section class="stats-section">
+    <div class="stats-container">
+        <div class="stat-card">
+            <h3>500+</h3>
+            <p>Active Students</p>
+        </div>
+        <div class="stat-card">
+            <h3>120+</h3>
+            <p>Courses Available</p>
+        </div>
+        <div class="stat-card">
+            <h3>50+</h3>
+            <p>Expert Teachers</p>
+        </div>
+        <div class="stat-card">
+            <h3>100%</h3>
+            <p>Secure Learning</p>
+        </div>
+    </div>
+</section>
+
+<!-- Mission -->
+<section class="mission-section">
+    <div class="mission-container">
+        <div class="mission-content">
+            <h2><span style="font-size: 2rem;">🎯</span> Our Mission</h2>
+            <p>Our mission is to make learning smarter, interactive, and personalized. We help students progress step-by-step, unlock quizzes, and gain real skills.</p>
+            <p>Teachers can easily upload modules, track student performance, and manage courses securely in one place. With AES-128 encryption, your content is always protected.</p>
+            <p>We believe in the future of smart learning, where technology adapts to each student's needs and helps them achieve their goals efficiently.</p>
+        </div>
+        <div class="mission-image">
+            <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="50" width="300" height="200" rx="20" fill="#e0e7ff" stroke="#667eea" stroke-width="2"/>
+                <circle cx="150" cy="130" r="40" fill="#667eea" opacity="0.3"/>
+                <circle cx="250" cy="130" r="40" fill="#764ba2" opacity="0.3"/>
+                <rect x="100" y="180" width="200" height="10" rx="5" fill="#667eea" opacity="0.5"/>
+                <rect x="120" y="200" width="160" height="10" rx="5" fill="#667eea" opacity="0.3"/>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<!-- Team -->
+<section class="team-section">
+    <div class="team-header">
+        <h2>Meet Our Team</h2>
+        <p>LearnTrust is built by passionate developers and educators who believe in the future of smart learning.</p>
+    </div>
+    
+    <div class="team-grid">
+        <div class="team-card">
+            <div class="team-avatar">👨‍💼</div>
+            <h3>Rohan</h3>
+            <p>Full Stack Developer</p>
+        </div>
+        
+        <div class="team-card">
+            <div class="team-avatar">👩‍🏫</div>
+            <h3>Teacher Admin</h3>
+            <p>Course Manager</p>
+        </div>
+        
+        <div class="team-card">
+            <div class="team-avatar">🤖</div>
+            <h3>AI Assistant</h3>
+            <p>Smart Learning Support</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

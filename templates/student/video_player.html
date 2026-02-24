@@ -1,0 +1,639 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .video-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .video-wrapper {
+        position: relative;
+        background: #000;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    #videoPlayer {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .quality-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 10;
+    }
+
+    .video-info {
+        margin-top: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+    }
+
+    /* Micro-Quiz Modal Styles */
+    .quiz-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .quiz-modal.active {
+        display: flex;
+    }
+
+    .quiz-content {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .quiz-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 20px;
+    }
+
+    .quiz-question {
+        font-size: 16px;
+        color: #374151;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .quiz-option {
+        padding: 14px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .quiz-option:hover {
+        border-color: #667eea;
+        background: #f5f3ff;
+    }
+
+    .quiz-option.selected {
+        border-color: #667eea;
+        background: #667eea;
+        color: white;
+    }
+
+    .quiz-option.correct {
+        border-color: #10b981;
+        background: #d1fae5;
+    }
+
+    .quiz-option.incorrect {
+        border-color: #ef4444;
+        background: #fee2e2;
+    }
+
+    .quiz-option-letter {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .quiz-option.selected .quiz-option-letter {
+        background: white;
+        color: #667eea;
+    }
+
+    .quiz-submit {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .quiz-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .quiz-submit:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .quiz-result {
+        display: none;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    .quiz-result.success {
+        display: block;
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .quiz-result.error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Webcam Consent Modal */
+    .webcam-modal {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .webcam-content {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .webcam-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
+
+    .webcam-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 16px;
+    }
+
+    .webcam-description {
+        color: #6b7280;
+        margin-bottom: 24px;
+        line-height: 1.6;
+    }
+
+    .webcam-checkbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        cursor: pointer;
+    }
+
+    .webcam-checkbox input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .webcam-btn {
+        padding: 14px 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .webcam-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .webcam-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .webcam-error {
+        color: #ef4444;
+        margin-top: 16px;
+        display: none;
+    }
+</style>
+
+<!-- Webcam Consent Modal -->
+<div class="webcam-modal" id="webcamModal">
+    <div class="webcam-content">
+        <div class="webcam-icon">📹</div>
+        <h3 class="webcam-title">Proctoring Required</h3>
+        <p class="webcam-description">
+            This course requires webcam monitoring to ensure academic integrity. 
+            Your webcam will capture periodic snapshots (every 2 minutes) during the video playback.
+        </p>
+        <label class="webcam-checkbox">
+            <input type="checkbox" id="webcamConsent">
+            <span>I consent to webcam monitoring</span>
+        </label>
+        <button class="webcam-btn" id="webcamContinue" onclick="enableWebcam()">Continue</button>
+        <p class="webcam-error" id="webcamError">Please check the consent box to continue</p>
+    </div>
+</div>
+
+<!-- Hidden webcam elements -->
+<video id="webcamVideo" style="display: none;" autoplay playsinline muted></video>
+<canvas id="webcamCanvas" style="display: none;"></canvas>
+
+<div class="video-container">
+    <h2>{{ module.title }}</h2>
+    
+    <div class="video-wrapper">
+        <div class="quality-badge" id="qualityBadge">Auto</div>
+        <video id="videoPlayer" controls data-module-id="{{ module.id }}" playsinline>
+            <!-- HLS will be loaded by hls.js -->
+        </video>
+    </div>
+
+    <div class="video-info">
+        <h3>Progress</h3>
+        <p>Watched: <span id="watchPercent">0</span>%</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+        <p style="margin-top: 10px; color: #6b7280; font-size: 14px;">
+            <span id="currentResolution">Loading...</span> • 
+            <span id="bufferHealth">Buffer: --</span>
+        </p>
+    </div>
+</div>
+
+<!-- Micro-Quiz Modal -->
+<div class="quiz-modal" id="quizModal">
+    <div class="quiz-content">
+        <h3 class="quiz-title">Quick Check</h3>
+        <div class="quiz-result" id="quizResult"></div>
+        <p class="quiz-question" id="quizQuestion"></p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <button class="quiz-submit" id="quizSubmit" onclick="submitQuiz()">Submit Answer</button>
+    </div>
+</div>
+
+<!-- Load hls.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+    const video = document.getElementById('videoPlayer');
+    const moduleId = video.dataset.moduleId;
+    const token = '{{ token }}';
+    const hlsUrl = '/stream/' + moduleId + '/?token=' + token;
+    
+    let hls = null;
+    let watchPercent = 0;
+    let sequenceNumber = 0;
+    let microQuizzes = [];
+    let currentQuiz = null;
+    let answeredQuizzes = new Set();
+    let selectedOption = null;
+
+    // Load micro-quizzes for this module
+    async function loadMicroQuizzes() {
+        try {
+            const response = await fetch('/api/micro-quizzes/' + moduleId + '/');
+            const data = await response.json();
+            if (data.quizzes) {
+                microQuizzes = data.quizzes;
+            }
+        } catch (err) {
+            console.error('Failed to load micro-quizzes:', err);
+        }
+    }
+
+    // Check for quiz triggers
+    function checkQuizTriggers(currentTime) {
+        if (!currentQuiz && microQuizzes.length > 0) {
+            const quiz = microQuizzes.find(q => 
+                Math.floor(currentTime) >= q.trigger_time && 
+                Math.floor(currentTime) < q.trigger_time + 2 &&
+                !answeredQuizzes.has(q.id)
+            );
+            
+            if (quiz) {
+                showQuiz(quiz);
+            }
+        }
+    }
+
+    // Show quiz modal
+    function showQuiz(quiz) {
+        currentQuiz = quiz;
+        video.pause();
+        
+        document.getElementById('quizQuestion').textContent = quiz.question;
+        document.getElementById('quizResult').className = 'quiz-result';
+        document.getElementById('quizResult').style.display = 'none';
+        document.getElementById('quizSubmit').disabled = false;
+        document.getElementById('quizSubmit').textContent = 'Submit Answer';
+        selectedOption = null;
+        
+        const optionsContainer = document.getElementById('quizOptions');
+        optionsContainer.innerHTML = '';
+        
+        const options = [
+            { letter: 'A', text: quiz.option_a },
+            { letter: 'B', text: quiz.option_b },
+            { letter: 'C', text: quiz.option_c },
+            { letter: 'D', text: quiz.option_d }
+        ];
+        
+        options.forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'quiz-option';
+            div.onclick = () => selectOption(opt.letter, div);
+            div.innerHTML = `
+                <span class="quiz-option-letter">${opt.letter}</span>
+                <span>${opt.text}</span>
+            `;
+            optionsContainer.appendChild(div);
+        });
+        
+        document.getElementById('quizModal').classList.add('active');
+    }
+
+    // Select option
+    function selectOption(letter, element) {
+        document.querySelectorAll('.quiz-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        element.classList.add('selected');
+        selectedOption = letter;
+    }
+
+    // Submit quiz answer
+    async function submitQuiz() {
+        if (!selectedOption) {
+            alert('Please select an answer');
+            return;
+        }
+        
+        document.getElementById('quizSubmit').disabled = true;
+        
+        try {
+            const response = await fetch('/api/micro-quiz/submit/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({
+                    quiz_id: currentQuiz.id,
+                    selected_option: selectedOption,
+                    current_time: video.currentTime,
+                    module_id: parseInt(moduleId)
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.correct) {
+                // Mark correct answer
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    const letter = opt.querySelector('.quiz-option-letter').textContent;
+                    if (letter === data.correct_option) {
+                        opt.classList.add('correct');
+                    } else if (letter === selectedOption) {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                document.getElementById('quizResult').className = 'quiz-result success';
+                document.getElementById('quizResult').textContent = 'Correct! Resuming video...';
+                document.getElementById('quizSubmit').textContent = 'Continue';
+                
+                answeredQuizzes.add(currentQuiz.id);
+                
+                // Resume video after 1.5 seconds
+                setTimeout(() => {
+                    document.getElementById('quizModal').classList.remove('active');
+                    currentQuiz = null;
+                    video.play();
+                }, 1500);
+            } else {
+                // Mark incorrect
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    const letter = opt.querySelector('.quiz-option-letter').textContent;
+                    if (letter === selectedOption) {
+                        opt.classList.add('incorrect');
+                    } else if (letter === data.correct_option) {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                document.getElementById('quizResult').className = 'quiz-result error';
+                document.getElementById('quizResult').textContent = 'Incorrect. Please try again.';
+                document.getElementById('quizSubmit').disabled = false;
+                document.getElementById('quizSubmit').textContent = 'Try Again';
+            }
+        } catch (err) {
+            console.error('Quiz submission error:', err);
+            document.getElementById('quizSubmit').disabled = false;
+        }
+    }
+
+    // Initialize HLS player
+    if (Hls.isSupported()) {
+        hls = new Hls({
+            debug: false,
+            enableWorker: true,
+            lowLatencyMode: false,
+            backBufferLength: 90,
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
+            startLevel: -1,
+            capLevelToPlayerSize: true,
+        });
+
+        hls.loadSource(hlsUrl);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+            console.log('HLS Manifest parsed, ' + data.levels.length + ' quality levels found');
+            video.play();
+            loadMicroQuizzes();
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
+            const levels = hls.levels;
+            const currentLevel = levels[data.level];
+            const resolution = currentLevel.height + 'p';
+            const bandwidth = Math.round(currentLevel.bitrate / 1000) + 'kbps';
+            
+            document.getElementById('qualityBadge').textContent = resolution;
+            document.getElementById('currentResolution').textContent = 
+                'Quality: ' + resolution + ' (' + bandwidth + ')';
+        });
+
+        hls.on(Hls.Events.BUFFER_APPENDED, function(event, data) {
+            const buffered = video.buffered;
+            if (buffered.length > 0) {
+                const bufferEnd = buffered.end(buffered.length - 1);
+                const duration = video.duration || 0;
+                const bufferHealth = Math.round((bufferEnd - video.currentTime));
+                document.getElementById('bufferHealth').textContent = 'Buffer: ' + bufferHealth + 's';
+            }
+        });
+
+        hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal) {
+                switch(data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                        hls.startLoad();
+                        break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        hls.recoverMediaError();
+                        break;
+                    default:
+                        hls.destroy();
+                        break;
+                }
+            }
+        });
+
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = hlsUrl;
+        video.addEventListener('loadedmetadata', function() {
+            video.play();
+            loadMicroQuizzes();
+        });
+    } else {
+        alert('Your browser does not support HLS streaming. Please use a modern browser.');
+    }
+
+    // Watch progress tracking
+    video.addEventListener('timeupdate', function() {
+        if (video.duration) {
+            watchPercent = Math.round((video.currentTime / video.duration) * 100);
+            document.getElementById('watchPercent').textContent = watchPercent;
+            document.getElementById('progressBar').style.width = watchPercent + '%';
+            
+            // Check for quiz triggers
+            checkQuizTriggers(video.currentTime);
+            
+            // Send heartbeat every 10 seconds
+            if (Math.floor(video.currentTime) % 10 === 0) {
+                sendWatchEvent('heartbeat');
+            }
+        }
+    });
+
+    // Send watch events
+    function sendWatchEvent(eventType) {
+        fetch('/api/watch-event/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                module_id: parseInt(moduleId),
+                event_type: eventType,
+                sequence_number: ++sequenceNumber,
+                current_time: video.currentTime,
+                duration: video.duration,
+                watch_percent: watchPercent,
+                metadata: {
+                    quality: document.getElementById('qualityBadge').textContent,
+                    timestamp: new Date().toISOString()
+                }
+            })
+        }).catch(err => console.error('Watch event error:', err));
+    }
+
+    // Get CSRF token
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (hls) {
+            hls.destroy();
+        }
+    });
+</script>
+
+{% endblock %}

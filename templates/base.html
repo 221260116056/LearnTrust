@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LearnTrust</title>
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="dashboard-layout">
+
+    <!-- ================= TOP NAV (full width) ================= -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="brand">
+                <svg class="brand-icon" width="21" height="21" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 5.5C4 4.12 5.12 3 6.5 3H19V17.5C19 18.88 17.88 20 16.5 20H5V5.5Z" stroke="#2563EB" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M5 6H17.5C18.88 6 20 7.12 20 8.5V19" stroke="#2563EB" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                <span class="brand-text">LearnTrust</span>
+            </div>
+        </div>
+        <div class="topbar-center">
+            <div class="topbar-search-wrapper">
+                <span class="topbar-search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="5.5" stroke="#9CA3AF" stroke-width="1.6"/>
+                        <path d="M15 15L18.5 18.5" stroke="#9CA3AF" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <input
+                    type="search"
+                    class="topbar-search-input"
+                    placeholder="{% block search_placeholder %}Search...{% endblock %}" />
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="topbar-notification" type="button" aria-label="Notifications">
+                <span class="topbar-notification-icon">
+                    <svg width="27" height="27" viewBox="0 0 24 24" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4C9.79086 4 8 5.79086 8 8V9.25C8 9.861 7.78046 10.4523 7.38268 10.9L6.3 12.1C5.59306 12.8903 6.15539 14.125 7.25 14.125H16.75C17.8446 14.125 18.4069 12.8903 17.7 12.1L16.6173 10.9C16.2195 10.4523 16 9.861 16 9.25V8C16 5.79086 14.2091 4 12 4Z"
+                              stroke="#4B5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10.75 16.5C11.0403 17.1894 11.7693 17.6667 12.5714 17.6667C13.3734 17.6667 14.1025 17.1894 14.3929 16.5"
+                              stroke="#4B5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="topbar-notification-dot"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+        <div class="sidebar-inner">
+            <!-- Navigation -->
+            {% block sidebar_nav %}
+            <nav class="sidebar-nav">
+                <ul class="menu">
+                    <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <a href="{% url 'dashboard' %}">
+                            <span class="menu-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="4" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                                    <rect x="14" y="4" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                                    <rect x="4" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                                    <rect x="14" y="14" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}">
+                        <a href="{% url 'my_courses' %}">
+                            <span class="menu-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 9L12 5L20 9L12 13L4 9Z" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linejoin="round"/>
+                                    <path d="M7 11.5V15.5C7 17.433 9.686 19 12 19C14.314 19 17 17.433 17 15.5V11.5"
+                                          stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                          stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span class="menu-label">My Courses</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                        <a href="{% url 'analytics' %}">
+                            <span class="menu-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 19V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M12 19V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M18 19V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Analytics</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'certificates' %}active{% endif %}">
+                        <a href="{% url 'certificates' %}">
+                            <span class="menu-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 5H18V15H6V5Z" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linejoin="round"/>
+                                    <path d="M9 9H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M9 12H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Certificates</span>
+                        </a>
+                    </li>
+                    <li class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                        <a href="{% url 'settings' %}">
+                            <span class="menu-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14.5C13.3807 14.5 14.5 13.3807 14.5 12C14.5 10.6193 13.3807 9.5 12 9.5C10.6193 9.5 9.5 10.6193 9.5 12C9.5 13.3807 10.6193 14.5 12 14.5Z"
+                                          stroke="currentColor" stroke-width="1.5"/>
+                                    <path d="M4 12H5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                    <path d="M18.5 12H20" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                    <path d="M7.05 7.05L8.1 8.1" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                    <path d="M15.9 15.9L16.95 16.95" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                    <path d="M7.05 16.95L8.1 15.9" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                    <path d="M15.9 8.1L16.95 7.05" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <span class="menu-label">Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endblock %}
+
+            <!-- User summary (bottom) -->
+            {% if request.user.is_authenticated %}
+            <div class="sidebar-user">
+                <div class="sidebar-user-left">
+                    <div class="sidebar-user-avatar">
+                        {% with name=request.user.first_name|default:request.user.username %}
+                            {{ name|first|upper }}
+                        {% endwith %}
+                    </div>
+                    <div class="sidebar-user-meta">
+                        <div class="sidebar-user-name">
+                            {% if request.user.first_name or request.user.last_name %}
+                                {{ request.user.first_name }} {{ request.user.last_name }}
+                            {% else %}
+                                {{ request.user.username }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="sidebar-logout-button">Logout</a>
+            </div>
+            {% endif %}
+
+        </div>
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="main-content">
+
+        <section class="page-content">
+            {% block content %}
+            {% endblock %}
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
